@@ -1,0 +1,90 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.frame {
+  background: #000;
+  padding: 24px;
+  border-radius: 4px;
+}
+
+.label {
+  color: #3d6fd6;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.stage {
+  position: relative;
+  width: 520px;
+  height: 320px;
+  background: #93b7e6;
+  border: 2px solid #2f66d8;
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.subtitle {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+/* Clouds */
+.cloud,
+.cloud::before,
+.cloud::after {
+  background: #fff;
+  border-radius: 50%;
+}
+
+.cloud {
+  position: absolute;
+  width: 130px;
+  height: 50px;
+  border-radius: 50px;
+}
+
+.cloud::before,
+.cloud::after {
+  content: "";
+  position: absolute;
+}
+
+.cloud::before {
+  width: 80px;
+  height: 80px;
+  top: -40px;
+  left: 15px;
+}
+
+.cloud::after {
+  width: 60px;
+  height: 60px;
+  top: -28px;
+  right: 10px;
+}
+
+.cloud-top {
+  top: -25px;
+  right: -20px;
+}
+
+.cloud-bottom {
+  bottom: -25px;
+  left: -20px;
+}
