@@ -1,0 +1,106 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 화면 전체를 세로 flex로 중앙 정렬 (제목 → 수량 조절 영역) */
+.stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6vh;
+}
+
+.title {
+  font-size: clamp(16px, 2.2vw, 28px);
+  color: #181818;
+  text-align: center;
+}
+
+/* -버튼 / 숫자 / +버튼을 가로로 나열 */
+.counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4vw;
+}
+
+.count {
+  min-width: 1.2em;
+  text-align: center;
+  font-size: clamp(48px, 8vw, 110px);
+  font-weight: 800;
+  color: #181818;
+  font-family: "Arial Rounded MT Bold", "Segoe UI", sans-serif;
+}
+
+/* 아이콘 버튼(-, +)과 하단 이동 버튼(BACK, NEXT) 공통 스타일 */
+.icon-btn,
+.nav-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.icon-btn img {
+  display: block;
+  width: clamp(48px, 6vw, 80px);
+  height: auto;
+}
+
+.icon-btn:hover {
+  transform: scale(1.1);
+  opacity: 0.7;
+}
+
+.icon-btn:active {
+  transform: scale(0.95);
+}
+
+/* 수량이 한계값(2 또는 4)일 때 해당 버튼을 화면에서 감춘다.
+   visibility: hidden을 써서 자리는 유지하고(레이아웃이 흔들리지 않게) 클릭만 막는다. */
+.icon-btn:disabled {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* 화면 하단에 고정되어 좌우로 벌어지는 BACK/NEXT 영역 */
+.nav {
+  position: absolute;
+  bottom: 6vh;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 6vw;
+}
+
+.nav-btn img {
+  display: block;
+  width: clamp(120px, 12vw, 180px);
+  height: auto;
+}
+
+.nav-btn:hover {
+  transform: scale(1.05);
+  opacity: 0.75;
+}
+
+.nav-btn:active {
+  transform: scale(0.97);
+}

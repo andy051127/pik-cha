@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<!-- "START! in 5" 카운트다운 화면.
+     start.svg(START! in 문구) 위에, 같은 좌표계를 쓰는 별도 SVG로
+     숫자만 겹쳐 그려서 화면 크기가 달라져도 항상 "in" 옆에 정확히 붙는다.
+     5초 후 자동으로 다음 화면(script.js)으로 이동한다. -->
+<head>
+<meta charset="UTF-8">
+<title>Count Down</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="stage">
+    <div class="frame">
+      <!-- 배경 그림: "START!" 와 "in" 문구가 포함된 정적 SVG -->
+      <img class="stage-img" src="start.svg" alt="START! in">
+      <!-- start.svg와 동일한 viewBox를 쓰는 오버레이 SVG.
+           카운트다운 숫자를 여기에 그려서 배경과 항상 같은 비율로 스케일된다. -->
+      <svg class="count-svg" viewBox="0 0 1342 877" preserveAspectRatio="xMidYMid meet">
+        <text id="count" x="686" y="585" font-family="Chakra Petch" font-size="92" fill="#101010">5</text>
+      </svg>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

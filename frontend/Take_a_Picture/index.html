@@ -1,0 +1,51 @@
+<!-- 실제 촬영 화면.
+     왼쪽 큰 회색 영역에 웹캠 영상이 나오고, 오른쪽 패널에 카운트다운 숫자와
+     현재/총 촬영 횟수(예: 1/8)가 표시된다. 로직은 전부 script.js에 있다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Take a Picture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="stage">
+    <div class="frame">
+      <!-- 웹캠 실시간 영상이 재생되는 영역 -->
+      <div class="camera-wrap">
+        <video id="camera" class="camera-feed" autoplay muted playsinline></video>
+      </div>
+
+      <!-- 촬영 횟수(위) / 구분선 / 카운트다운(아래). 각 숫자 위에 작은 라벨을 붙여
+           무엇을 의미하는지 바로 알아볼 수 있게 한다. -->
+      <div class="panel">
+        <div class="panel-row">
+          <div class="panel-item">
+            <span class="panel-label">촬영 횟수</span>
+            <span class="shot-count">
+              <span id="shotCurrent">1</span>/<span id="shotTotal">8</span>
+            </span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="panel-row">
+          <div class="panel-item">
+            <span class="panel-label">남은 시간</span>
+            <span class="countdown" id="countdown">10</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 촬영 순간 화면을 하얗게 번쩍이는 플래시 효과용 오버레이 -->
+      <div class="flash-overlay" id="flashOverlay"></div>
+    </div>
+  </div>
+
+  <!-- 캡처한 프레임을 이미지로 변환하는 데 쓰는 숨김 캔버스(화면에 보이지 않음) -->
+  <canvas id="captureCanvas" hidden></canvas>
+  <script src="script.js"></script>
+</body>
+</html>
