@@ -26,6 +26,14 @@ const flashOverlay = document.getElementById("flashOverlay");
 const TOTAL_SHOTS = 8;       // 8컷
 const SECONDS_PER_SHOT = 5;  // 컷당 5초 간격
 
+// ★ 저장본 크롭 비율.
+//   review_photo(Review_Photos)의 프레임 슬롯과 동일한 세로 비율(175.5 : 241.8).
+//   브라우저에서 캡처하지 않고 서버가 카메라 원본을 저장하므로, 이 비율을
+//   start 요청에 실어 보내서 서버가 "중앙 크롭"으로 이 비율에 맞춰 저장하게 한다.
+//   → 이렇게 저장된 사진은 review_photo 프레임 슬롯에 잘림/왜곡 없이 그대로 들어간다.
+const CAPTURE_ASPECT_W = 175.5;
+const CAPTURE_ASPECT_H = 241.8;
+
 let ws = null;
 let wsReconnectTimer = null;
 
@@ -116,7 +124,13 @@ async function startShooting() {
     const res = await fetch(`${API_BASE}/api/four-cut/start`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ interval: SECONDS_PER_SHOT, count: TOTAL_SHOTS }),
+      body: JSON.stringify({
+        interval: SECONDS_PER_SHOT,
+        count: TOTAL_SHOTS,
+        // ★ 저장본을 review_photo 프레임 슬롯 비율(175.5 : 241.8)로 중앙 크롭 저장
+        aspect_w: CAPTURE_ASPECT_W,
+        aspect_h: CAPTURE_ASPECT_H,
+      }),
     });
     const result = await res.json();
     if (!result.success) {

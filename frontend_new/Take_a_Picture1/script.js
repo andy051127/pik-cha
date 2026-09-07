@@ -20,10 +20,11 @@ const SECONDS_PER_SHOT = 5;
 shotTotalEl.textContent = TOTAL_SHOTS;
 
 // 데모용 라이브뷰 placeholder 이미지 (캔버스로 즉석 생성)
+// ★ 규격: review_photo 프레임 슬롯과 동일한 세로 비율 175.5 : 241.8 (720 x 992)
 function generateDemoImage(label) {
   const canvas = document.createElement("canvas");
-  canvas.width = 640;
-  canvas.height = 480;
+  canvas.width = 720;
+  canvas.height = 992;
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#333333";
   ctx.fillRect(0, 0, canvas.width, canvas.height);

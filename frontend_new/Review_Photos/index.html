@@ -12,7 +12,8 @@
 <div class="stage">
   <svg class="board-svg" viewBox="0 0 1342 877" xmlns="http://www.w3.org/2000/svg">
     <rect width="1342" height="877" fill="white"/>
-    <text x="671" y="90" text-anchor="middle" font-size="34" font-weight="600" fill="#181818">마음에 드는 사진 4장을 골라주세요!</text>
+    <!-- ★ 타이틀: 화면 전체 중앙이 아니라 우측 4x2 그리드 영역의 상단 중앙에 배치 -->
+    <text x="933" y="165" text-anchor="middle" font-size="30" font-weight="600" fill="#181818">사진을 선택해 주세요!</text>
 
     <!-- Board: 사진들을 담는 액자. 실제 네컷 프레임 이미지(white_logo3.png, 1100x1605)와
          정확히 같은 비율(1100:1605)로 맞춰서, Select_Frame의 PHOTO_SLOTS 비율과
@@ -23,23 +24,27 @@
 
     <!-- 왼쪽 4칸(2x2): 선택한 순서대로 사진이 채워짐. 좌표는 Select_Frame의
          PHOTO_SLOTS(xf,yf,wf,hf)를 보드 크기(466 x 680.12)에 그대로 대입한 값.
-         ★ 보드를 눈에 잘 띄게 크게 키워달라는 요청 반영 (기존 206x301 -> 466x680) -->
+         ★ 보드를 눈에 잘 띄게 크게 키워달라는 요청 반영 (기존 206x301 -> 466x680)
+         ★ 각 슬롯을 정확히 175.5 : 241.8 세로 비율로 통일 (w=190.22 -> h=262.11).
+           take_a_picture 저장본이 같은 비율이라 slice/meet 어느 쪽이든 크롭·왜곡이
+           생기지 않는다. 안전하게 preserveAspectRatio="xMidYMid meet"로 두어
+           혹시 비율이 어긋난 사진이 와도 "잘리지 않고" 온전히 들어가게 한다. -->
     <g class="frame-slots">
       <g class="frame-slot" data-slot="0">
-        <rect class="frame-bg" x="93.88" y="212.56" width="190.22" height="262.31" fill="#D9D9D9"/>
-        <image class="frame-img" x="93.88" y="212.56" width="190.22" height="262.31" preserveAspectRatio="xMidYMid slice"/>
+        <rect class="frame-bg" x="93.88" y="212.56" width="190.22" height="262.11" fill="#D9D9D9"/>
+        <image class="frame-img" x="93.88" y="212.56" width="190.22" height="262.11" preserveAspectRatio="xMidYMid meet"/>
       </g>
       <g class="frame-slot" data-slot="1">
-        <rect class="frame-bg" x="301.48" y="212.56" width="190.22" height="262.31" fill="#D9D9D9"/>
-        <image class="frame-img" x="301.48" y="212.56" width="190.22" height="262.31" preserveAspectRatio="xMidYMid slice"/>
+        <rect class="frame-bg" x="301.48" y="212.56" width="190.22" height="262.11" fill="#D9D9D9"/>
+        <image class="frame-img" x="301.48" y="212.56" width="190.22" height="262.11" preserveAspectRatio="xMidYMid meet"/>
       </g>
       <g class="frame-slot" data-slot="2">
-        <rect class="frame-bg" x="93.88" y="483.71" width="190.22" height="262.38" fill="#D9D9D9"/>
-        <image class="frame-img" x="93.88" y="483.71" width="190.22" height="262.38" preserveAspectRatio="xMidYMid slice"/>
+        <rect class="frame-bg" x="93.88" y="483.51" width="190.22" height="262.11" fill="#D9D9D9"/>
+        <image class="frame-img" x="93.88" y="483.51" width="190.22" height="262.11" preserveAspectRatio="xMidYMid meet"/>
       </g>
       <g class="frame-slot" data-slot="3">
-        <rect class="frame-bg" x="301.48" y="483.71" width="190.22" height="262.38" fill="#D9D9D9"/>
-        <image class="frame-img" x="301.48" y="483.71" width="190.22" height="262.38" preserveAspectRatio="xMidYMid slice"/>
+        <rect class="frame-bg" x="301.48" y="483.51" width="190.22" height="262.11" fill="#D9D9D9"/>
+        <image class="frame-img" x="301.48" y="483.51" width="190.22" height="262.11" preserveAspectRatio="xMidYMid meet"/>
       </g>
     </g>
 

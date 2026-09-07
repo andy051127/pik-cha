@@ -10,18 +10,20 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const MAX_SELECT = 4;
 const TOTAL_OPTIONS = 8;
 
+// ★ 우측 썸네일 8칸 = 가로 4칸 x 세로 2칸 (4x2 그리드).
+//   각 칸은 프레임 슬롯과 동일한 세로 비율 175.5 : 241.8 (W=170 -> H=234.22).
 const OPTION_POSITIONS = [
-  { x: 672, y: 161 },
-  { x: 672, y: 306 },
-  { x: 672, y: 451 },
-  { x: 672, y: 596 },
-  { x: 892, y: 161 },
-  { x: 892, y: 306 },
-  { x: 892, y: 451 },
-  { x: 892, y: 596 },
+  { x: 566, y: 205 },
+  { x: 754, y: 205 },
+  { x: 942, y: 205 },
+  { x: 1130, y: 205 },
+  { x: 566, y: 461.44 },
+  { x: 754, y: 461.44 },
+  { x: 942, y: 461.44 },
+  { x: 1130, y: 461.44 },
 ];
-const OPTION_W = 208;
-const OPTION_H = 133;
+const OPTION_W = 170;
+const OPTION_H = 234.22;
 
 const photoOptionsGroup = document.getElementById("photoOptions");
 const frameSlots = [...document.querySelectorAll(".frame-slot")];
@@ -40,12 +42,13 @@ function makeSvg(tag, attrs) {
 }
 
 // 데모용 사진 8장을 캔버스로 즉석 생성
+// ★ 규격: review_photo 프레임 슬롯과 동일한 세로 비율 175.5 : 241.8 (320 x 441)
 function generateDemoPhotoList() {
   const colors = ["#FF6E6E", "#FFAF76", "#FFF982", "#9BFF7D", "#7FB2FF", "#594DFF", "#CF75FF", "#FF7DD6"];
   return Array.from({ length: TOTAL_OPTIONS }, (_, i) => {
     const canvas = document.createElement("canvas");
     canvas.width = 320;
-    canvas.height = 240;
+    canvas.height = 441;
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = colors[i];
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -83,6 +86,8 @@ function buildOptions() {
           y: pos.y,
           width: OPTION_W,
           height: OPTION_H,
+          // ★ 칸 비율(175.5 : 241.8)이 촬영본과 같으므로 slice로 꽉 채워도
+          //   왜곡·잘림이 생기지 않는다.
           preserveAspectRatio: "xMidYMid slice",
           href: photo.mockSrc,
         })
