@@ -1,0 +1,113 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 제목 + 입력 필드 2개를 세로로 쌓는 가운데 콘텐츠 블록 */
+.content {
+  width: min(640px, 80vw);
+  display: flex;
+  flex-direction: column;
+  gap: 6vh;
+}
+
+.title {
+  font-size: clamp(18px, 2.4vw, 30px);
+  font-weight: 600;
+  color: #101010;
+}
+
+/* 라벨 + 입력창 한 쌍 */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2vh;
+}
+
+.field-label {
+  font-size: clamp(14px, 1.6vw, 20px);
+  color: #101010;
+  font-weight: 500;
+}
+
+/* 둥근 알약(pill) 모양 입력창 */
+.pill-input {
+  width: 100%;
+  padding: 1.6vh 2vw;
+  border-radius: 9999px;
+  border: 1.5px solid #d8d8d8;
+  background: #f4f4f4;
+  color: #101010;
+  font-size: clamp(14px, 1.7vw, 20px);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.pill-input::placeholder {
+  color: #9a9a9a;
+}
+
+/* 포커스 시 테두리를 진하게, 배경을 흰색으로 바꿔 입력 중임을 표시 */
+.pill-input:focus {
+  border-color: #101010;
+  background: #fff;
+}
+
+/* 화면 하단에 고정되어 좌우로 벌어지는 BACK/NEXT 영역 */
+.nav {
+  position: absolute;
+  bottom: 6vh;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 6vw;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.nav-btn img {
+  display: block;
+  width: clamp(120px, 12vw, 180px);
+  height: auto;
+}
+
+.nav-btn:hover {
+  transform: scale(1.05);
+  opacity: 0.8;
+}
+
+.nav-btn:active {
+  transform: scale(0.97);
+}
+
+/* 이름/전화번호가 아직 유효하지 않을 때 NEXT를 반투명 + 클릭 불가로 만든다 */
+.next-btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}

@@ -1,0 +1,38 @@
+<!-- 인화할 사진 수량(2~4장)을 고르는 화면.
+     -/+ 버튼으로 수량을 조절하고, 하단 BACK/NEXT로 앞뒤 화면을 오간다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Number of Prints</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="stage">
+    <p class="title">사진 수량을 선택해 주세요.</p>
+
+    <!-- 마이너스 버튼 - 숫자 - 플러스 버튼으로 이루어진 수량 조절 영역 -->
+    <div class="counter">
+      <button class="icon-btn minus-btn" id="minusBtn" aria-label="수량 감소">
+        <img src="Elements/minus.svg" alt="">
+      </button>
+      <span class="count" id="count">2</span>
+      <button class="icon-btn plus-btn" id="plusBtn" aria-label="수량 증가">
+        <img src="Elements/plus.svg" alt="">
+      </button>
+    </div>
+
+    <!-- 화면 하단 좌우에 고정되는 이전/다음 버튼 -->
+    <div class="nav">
+      <button class="nav-btn back-btn" id="backBtn" aria-label="이전">
+        <img src="Elements/back.svg" alt="BACK">
+      </button>
+      <button class="nav-btn next-btn" id="nextBtn" aria-label="다음">
+        <img src="Elements/next.svg" alt="NEXT">
+      </button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

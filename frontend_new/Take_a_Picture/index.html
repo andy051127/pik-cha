@@ -1,0 +1,50 @@
+<!-- 실제 촬영 화면.
+     ★ 캐논 DSLR 백엔드 연동 버전: 왼쪽 회색 영역엔 웹캠(<video>) 대신
+     백엔드 웹소켓이 스트리밍하는 라이브뷰 프레임을 <img>로 표시한다.
+     오른쪽 패널에 카운트다운 숫자와 현재/총 촬영 횟수(4컷 고정)가 표시된다.
+     로직은 전부 script.js에 있다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Take a Picture</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="stage">
+    <div class="frame">
+      <!-- ★ <video> -> <img> 로 교체. 백엔드가 웹소켓으로 보내주는
+           base64 JPEG 프레임을 script.js가 여기 src로 계속 갱신한다. -->
+      <div class="camera-wrap">
+        <img id="camera" class="camera-feed" alt="라이브뷰" />
+      </div>
+
+      <!-- 촬영 횟수(위) / 구분선 / 카운트다운(아래). -->
+      <div class="panel">
+        <div class="panel-row">
+          <div class="panel-item">
+            <span class="panel-label">촬영 횟수</span>
+            <span class="shot-count">
+              <span id="shotCurrent">1</span>/<span id="shotTotal">8</span>
+            </span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="panel-row">
+          <div class="panel-item">
+            <span class="panel-label">남은 시간</span>
+            <span class="countdown" id="countdown">5</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 촬영 순간 화면을 하얗게 번쩍이는 플래시 효과용 오버레이 -->
+      <div class="flash-overlay" id="flashOverlay"></div>
+    </div>
+  </div>
+
+  <!-- ★ captureCanvas 제거됨: 이제 브라우저에서 프레임을 캡처하지 않는다.
+       실제 촬영본은 서버가 카메라에서 직접 다운로드해서 저장한다. -->
+  <script src="script.js"></script>
+</body>
+</html>

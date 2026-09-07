@@ -1,0 +1,195 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+}
+
+.stage {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 60px;
+  gap: 24px;
+}
+
+.title {
+  font-size: clamp(18px, 2.4vw, 28px);
+  font-weight: 600;
+  color: #181818;
+  text-align: center;
+}
+
+.layout {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  gap: 60px;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+/* ── 왼쪽: 미리보기 ── */
+.preview-wrap {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#previewCanvas {
+  height: 100%;
+  max-height: 640px;
+  width: auto;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  border-radius: 4px;
+}
+
+/* ── 오른쪽: 옵션 목록 ── */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 480px;
+}
+
+.option-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #181818;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.option-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: #999;
+}
+
+.swatch-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.swatch {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+/* 실제 아이콘 이미지를 원형 안에 꽉 채워서 표시 */
+.swatch img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.swatch:hover {
+  transform: scale(1.06);
+}
+
+.swatch.selected {
+  border-color: #ff4f81;
+}
+
+/* 흰색 프레임 스와치는 테두리가 안 보이니 기본 회색 링 추가 */
+.swatch.outline {
+  border-color: #ddd;
+}
+.swatch.outline.selected {
+  border-color: #ff4f81;
+}
+
+/* ── 하단 ── */
+.footer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-hint {
+  font-size: 14px;
+  color: #999;
+}
+
+.next-btn {
+  padding: 14px 40px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: #181818;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.next-btn:hover:not(:disabled) {
+  opacity: 0.85;
+  transform: scale(1.02);
+}
+
+.next-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* ── 로딩 오버레이 ── */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 1000;
+}
+
+.loading-overlay.show {
+  display: flex;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #333;
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: #fff;
+  font-size: 14px;
+  letter-spacing: 1px;
+}

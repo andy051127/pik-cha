@@ -1,0 +1,41 @@
+<!-- 이름/전화번호를 입력받는 화면.
+     둘 다 유효해야 NEXT가 활성화된다(script.js에서 검사). -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Personal Info</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="stage">
+    <div class="content">
+      <p class="title">사진 전송 및 안내를 위해 정보를 입력해주세요.</p>
+
+      <!-- 이름 입력 -->
+      <div class="field">
+        <label for="nameInput" class="field-label">이름 [Name]</label>
+        <input type="text" id="nameInput" class="pill-input" placeholder="이름을 입력해주세요" autocomplete="name">
+      </div>
+
+      <!-- 전화번호 입력: 010-0000-0000 형태로 자동 하이픈이 붙는다 -->
+      <div class="field">
+        <label for="phoneInput" class="field-label">전화번호 [Phone Number]</label>
+        <input type="tel" id="phoneInput" class="pill-input" placeholder="010-0000-0000" inputmode="numeric" autocomplete="tel" maxlength="13">
+      </div>
+    </div>
+
+    <!-- NEXT는 입력이 유효할 때만 클릭 가능(disabled 속성은 script.js가 토글) -->
+    <div class="nav">
+      <button class="nav-btn back-btn" id="backBtn" aria-label="이전">
+        <img src="Elements/back.svg" alt="BACK">
+      </button>
+      <button class="nav-btn next-btn" id="nextBtn" aria-label="다음" disabled>
+        <img src="Elements/next.svg" alt="NEXT">
+      </button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

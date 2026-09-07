@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<!-- 촬영본(최대 8장) 중 인화할 4장을 고르는 화면.
+     ★ 기존 코드 그대로 사용하되, 오른쪽 8칸은 script.js가 sessionStorage
+     대신 서버(/api/images)에서 사진 목록을 받아와 채운다. -->
+<head>
+  <meta charset="UTF-8">
+  <title>Review Photos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="stage">
+  <svg class="board-svg" viewBox="0 0 1342 877" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1342" height="877" fill="white"/>
+    <text x="671" y="90" text-anchor="middle" font-size="34" font-weight="600" fill="#181818">마음에 드는 사진 4장을 골라주세요!</text>
+
+    <!-- Board: 사진들을 담는 액자. 실제 네컷 프레임 이미지(white_logo3.png, 1100x1605)와
+         정확히 같은 비율(1100:1605)로 맞춰서, Select_Frame의 PHOTO_SLOTS 비율과
+         동일한 위치에 사진을 배치하고 그 위에 실제 프레임 오버레이 이미지를 그대로 씌운다.
+         → 예전에는 이 보드가 임의 비율(폭:높이 ≈ 1:3)의 손그림 목업이라 실제 네컷과
+           다르게 생겼었음(로고도 손으로 그린 path였음). -->
+    <rect x="60" y="110" width="466" height="680.12" fill="white" stroke="black"/>
+
+    <!-- 왼쪽 4칸(2x2): 선택한 순서대로 사진이 채워짐. 좌표는 Select_Frame의
+         PHOTO_SLOTS(xf,yf,wf,hf)를 보드 크기(466 x 680.12)에 그대로 대입한 값.
+         ★ 보드를 눈에 잘 띄게 크게 키워달라는 요청 반영 (기존 206x301 -> 466x680) -->
+    <g class="frame-slots">
+      <g class="frame-slot" data-slot="0">
+        <rect class="frame-bg" x="93.88" y="212.56" width="190.22" height="262.31" fill="#D9D9D9"/>
+        <image class="frame-img" x="93.88" y="212.56" width="190.22" height="262.31" preserveAspectRatio="xMidYMid slice"/>
+      </g>
+      <g class="frame-slot" data-slot="1">
+        <rect class="frame-bg" x="301.48" y="212.56" width="190.22" height="262.31" fill="#D9D9D9"/>
+        <image class="frame-img" x="301.48" y="212.56" width="190.22" height="262.31" preserveAspectRatio="xMidYMid slice"/>
+      </g>
+      <g class="frame-slot" data-slot="2">
+        <rect class="frame-bg" x="93.88" y="483.71" width="190.22" height="262.38" fill="#D9D9D9"/>
+        <image class="frame-img" x="93.88" y="483.71" width="190.22" height="262.38" preserveAspectRatio="xMidYMid slice"/>
+      </g>
+      <g class="frame-slot" data-slot="3">
+        <rect class="frame-bg" x="301.48" y="483.71" width="190.22" height="262.38" fill="#D9D9D9"/>
+        <image class="frame-img" x="301.48" y="483.71" width="190.22" height="262.38" preserveAspectRatio="xMidYMid slice"/>
+      </g>
+    </g>
+
+    <!-- 프레임 오버레이: 손으로 그린 로고 path 대신, Select_Frame이 실제로 쓰는
+         완성본 프레임 이미지(테두리+로고, 사진 칸은 투명하게 뚫려있음)를 사진들
+         "위에" 그대로 덮어씌운다. 보드 크기와 정확히 같은 비율이라 늘어나지 않음. -->
+    <image class="frame-overlay" x="60" y="110" width="466" height="680.12"
+           href="../Select_Frame/assets/frames_full/white_logo3.png"
+           preserveAspectRatio="none"/>
+
+    <!-- 오른쪽 8칸: 촬영본 선택 영역. 내용은 비어있고,
+         script.js가 서버(/api/images)의 촬영본으로 이 안을 채운다. -->
+    <g class="photo-options" id="photoOptions"></g>
+
+    <!-- NEXT 버튼: 정확히 4장을 골라야 클릭 가능해진다(script.js) -->
+    <g id="nextBtn" class="next-btn">
+      <rect x="1132.5" y="783.5" width="166" height="47" rx="23.5" fill="white" stroke="#181818"/>
+      <text x="1215" y="813" text-anchor="middle" font-size="21" font-weight="600" fill="#181818">NEXT</text>
+      <path d="M1265 807L1253 800.072L1253 813.928L1265 807Z" fill="#181818"/>
+    </g>
+  </svg>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

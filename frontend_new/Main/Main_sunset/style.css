@@ -1,0 +1,28 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 화면 전체(뷰포트)를 그대로 차지하는 스테이지.
+   cursor: pointer로 "눌러서 시작"할 수 있음을 암시한다. */
+.stage {
+  width: 100vw;
+  height: 100vh;
+  cursor: pointer;
+}
+
+/* sunset.svg를 비율 왜곡 없이 화면 전체에 꽉 채운다(object-fit: cover). */
+.stage-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

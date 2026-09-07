@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Select Frame</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="stage">
+    <h1 class="title">프레임을 선택해 주세요!</h1>
+
+    <div class="layout">
+      <!-- 왼쪽: 실시간 합성 미리보기 -->
+      <div class="preview-wrap">
+        <canvas id="previewCanvas" width="550" height="803"></canvas>
+      </div>
+
+      <!-- 오른쪽: 카테고리별 선택 -->
+      <div class="options">
+        <div class="option-group">
+          <div class="option-label">Logo</div>
+          <div class="swatch-row" id="logoRow"></div>
+        </div>
+
+        <div class="option-group">
+          <div class="option-label">Photo Color</div>
+          <div class="swatch-row" id="photoColorRow"></div>
+        </div>
+
+        <div class="option-group">
+          <div class="option-label">
+            Special Frame
+            <span class="option-hint">정말 특별한 사람들을 위한 프레임</span>
+          </div>
+          <div class="swatch-row" id="specialFrameRow"></div>
+        </div>
+
+        <div class="option-group">
+          <div class="option-label">Frame</div>
+          <div class="swatch-row" id="frameColorRow"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-hint">QR코드로 사진원본을 다운받을 수 있습니다.</div>
+      <button class="next-btn" id="nextBtn" disabled>NEXT ▶</button>
+    </div>
+  </div>
+
+  <!-- 생성/업로드 중 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">사진 만드는 중...</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
