@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pik-Cha!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            overflow: hidden;
+        }
+
+        /* ============ 초기 화면 ============ */
+        .splash-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+            flex-direction: column;
+            gap: 60px;
+        }
+
+        .logo {
+            font-size: 80px;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 3px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .logo-subtitle {
+            font-size: 16px;
+            color: #888;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .start-btn {
+            padding: 18px 60px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .start-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 20px 60px rgba(255, 255, 255, 0.3);
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ============ 네컷 생성 중 화면 (스플래시 화면 스타일 재사용) ============ */
+        .generating-screen {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+            flex-direction: column;
+            gap: 40px;
+            z-index: 1200;
+        }
+
+        .generating-screen.show {
+            display: flex;
+        }
+
+        .generating-text {
+            font-size: 16px;
+            color: #fff;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .generating-progress-wrap {
+            width: 320px;
+            max-width: 70vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .generating-progress-track {
+            width: 100%;
+            height: 6px;
+            background: #2a2a2a;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .generating-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #fff;
+            border-radius: 3px;
+            transition: width 0.2s ease;
+        }
+
+        .generating-progress-label {
+            font-size: 13px;
+            color: #888;
+            letter-spacing: 1px;
+        }
+
+        /* ============ 촬영 화면 ============ */
+        .shooting-screen {
+            display: none;
+            height: 100vh;
+            grid-template-columns: 3fr 1fr;
+        }
+
+        .shooting-screen.active {
+            display: grid;
+        }
+
+        /* 라이브뷰 영역 */
+        .liveview-section {
+            background: #000;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ★ 최종 네컷 프레임 칸과 동일한 비율로 라이브뷰를 잘라서 보여주는 컨테이너.
+           비율(aspect-ratio)은 JS에서 /api/frames/aspect-ratio 값을 받아와 채운다.
+           이러면 사용자가 라이브뷰에서 본 구도 그대로 최종 사진에 들어간다. */
+        .liveview-frame {
+            position: relative;
+            height: 100%;
+            max-width: 100%;
+            /* 기본값(프레임 비율 못 받아왔을 때 대비) - JS가 로드되면 덮어씀 */
+            aspect-ratio: 1.57;
+        }
+
+        #liveviewImg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* 카운트다운 표시 */
+        .countdown-display {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            font-size: 64px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .countdown-display.show {
+            opacity: 1;
+        }
+
+        /* 진행상황 표시 (좌상단) */
+        .status-display {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 100;
+        }
+
+        .status-display.show {
+            opacity: 1;
+        }
+
+        /* 촬영 완료 후 화면 전환 전 로딩 오버레이 */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #333;
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #fff;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        /* ★ 네컷 생성 완료 후 최종 사진 + QR을 같이 보여주는 팝업 */
+        .qr-result-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            z-index: 1100;
+            padding: 40px;
+        }
+
+        .qr-result-overlay.show {
+            display: flex;
+        }
+
+        .qr-result-title {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .qr-result-content {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .qr-result-photo {
+            max-width: 220px;
+            max-height: 60vh;
+            border-radius: 4px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .qr-result-qr-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .qr-result-qr-box img {
+            width: 180px;
+            height: 180px;
+        }
+
+        .qr-result-qr-label {
+            color: #000;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .qr-result-close-btn {
+            padding: 14px 48px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* 우측 갤러리 패널 */
+        .gallery-panel {
+            background: #1a1a1a;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .gallery-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .gallery-header h3 {
+            font-size: 12px;
+            color: #888;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .gallery-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .gallery-item {
+            aspect-ratio: 1;
+            background: #2a2a2a;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-item:hover {
+            border-color: #555;
+        }
+
+        .gallery-item.selected {
+            border-color: #fff;
+        }
+
+        .gallery-item.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #fff;
+            color: #000;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .empty-gallery {
+            text-align: center;
+            color: #555;
+            font-size: 12px;
+            padding: 20px;
+        }
+
+        /* ============ 편집 화면 ============ */
+        .editing-screen {
+            display: none;
+            height: 100vh;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .editing-screen.active {
+            display: grid;
+        }
+
+        /* 좌측: 프레임 생성 */
+        .frame-section {
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* ★ 프레임 미리보기: 실제 프레임 이미지 비율 그대로, 사진들을 절대위치로
+           깔고 그 위에 프레임 PNG(테두리)를 겹쳐서 진짜 결과물처럼 보여준다.
+           width/height/aspect-ratio는 선택된 프레임에 맞춰 JS에서 동적으로 설정. */
+        .frame-preview {
+            position: relative;
+            width: 100%;
+            max-width: 260px;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .frame-slot {
+            position: absolute;
+            background: #2a2a2a;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .frame-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .frame-slot.empty::after {
+            content: '+';
+            font-size: 24px;
+            color: #555;
+        }
+
+        /* 프레임 PNG(테두리/디자인)를 사진들 위에 그대로 덮어씌우는 레이어 */
+        .frame-overlay-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* 프레임(디자인) 선택 UI */
+        .frame-picker-title {
+            font-size: 12px;
+            color: #888;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 12px;
+        }
+
+        .frame-picker {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+        }
+
+        .frame-picker-item {
+            flex: 0 0 auto;
+            width: 56px;
+            height: 56px;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            overflow: hidden;
+            background:
+                linear-gradient(45deg, #333 25%, transparent 25%),
+                linear-gradient(-45deg, #333 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #333 75%),
+                linear-gradient(-45deg, transparent 75%, #333 75%);
+            background-size: 12px 12px;
+            background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
+            background-color: #1a1a1a;
+            transition: border-color 0.2s ease;
+        }
+
+        .frame-picker-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .frame-picker-item:hover {
+            border-color: #555;
+        }
+
+        .frame-picker-item.selected {
+            border-color: #fff;
+        }
+
+        .frame-controls {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn-frame {
+            flex: 1;
+            padding: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-create-frame {
+            background: #fff;
+            color: #000;
+        }
+
+        .btn-create-frame:hover:not(:disabled) {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: #2a2a2a;
+            color: #fff;
+        }
+
+        .btn-reset:hover:not(:disabled) {
+            background: #333;
+        }
+
+        .btn-frame:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 우측: 사진 선택 */
+        .photo-section {
+            background: #000;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .photo-section h3 {
+            font-size: 12px;
+            color: #888;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            flex: 1;
+        }
+
+        .photo-item {
+            aspect-ratio: 1;
+            background: #1a1a1a;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-item:hover {
+            border-color: #555;
+        }
+
+        .photo-item.selected {
+            border-color: #fff;
+        }
+
+        .photo-item.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #fff;
+            color: #000;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* 버튼들 */
+        .bottom-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back {
+            background: #2a2a2a;
+            color: #fff;
+        }
+
+        .btn-back:hover:not(:disabled) {
+            background: #333;
+        }
+
+        .btn-download {
+            background: #fff;
+            color: #000;
+        }
+
+        .btn-download:hover:not(:disabled) {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 스크롤바 스타일 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+<!-- 로딩 오버레이 -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">사진 정리 중...</div>
+</div>
+
+<!-- ★ 네컷 생성 중 화면 (스플래시 화면과 동일한 스타일, 시작하기 버튼 대신 진행률 표시) -->
+<div class="generating-screen" id="generatingScreen">
+    <div>
+        <div class="logo">Pik-Cha!</div>
+        <div class="logo-subtitle">Four Cut Photo</div>
+    </div>
+    <div class="generating-text">네컷 생성중...</div>
+    <div class="generating-progress-wrap">
+        <div class="generating-progress-track">
+            <div class="generating-progress-fill" id="generatingProgressFill"></div>
+        </div>
+        <div class="generating-progress-label" id="generatingProgressLabel">0%</div>
+    </div>
+</div>
+
+<!-- ★ 네컷 생성 완료 - 최종 사진 + QR 표시 팝업 -->
+<div class="qr-result-overlay" id="qrResultOverlay">
+    <div class="qr-result-title">완성됐어요!</div>
+    <div class="qr-result-content">
+        <img class="qr-result-photo" id="qrResultPhoto" src="" />
+        <div class="qr-result-qr-box" id="qrResultQrBox">
+            <img id="qrResultQrImg" src="" />
+            <div class="qr-result-qr-label">QR을 스캔해서<br>사진을 받아가세요</div>
+        </div>
+    </div>
+    <button class="qr-result-close-btn" onclick="closeQrResult()">확인</button>
+</div>
+
+<!-- 초기 화면 -->
+<div class="splash-screen" id="splashScreen">
+    <div>
+        <div class="logo">Pik-Cha!</div>
+        <div class="logo-subtitle">Four Cut Photo</div>
+    </div>
+    <button class="start-btn" onclick="startShooting()">시작하기</button>
+</div>
+
+<!-- 촬영 화면 -->
+<div class="shooting-screen" id="shootingScreen">
+    <div class="liveview-section">
+        <div class="status-display" id="statusDisplay"></div>
+        <div class="countdown-display" id="countdown"></div>
+        <div class="liveview-frame" id="liveviewFrame">
+            <img id="liveviewImg" src="" />
+        </div>
+    </div>
+    <div class="gallery-panel">
+        <div class="gallery-header">
+            <h3>촬영된 사진</h3>
+        </div>
+        <div class="gallery-list" id="galleryList">
+            <div class="empty-gallery">촬영 중...</div>
+        </div>
+    </div>
+</div>
+
+<!-- 편집 화면 -->
+<div class="editing-screen" id="editingScreen">
+    <div class="frame-section">
+        <div class="frame-preview" id="framePreview"></div>
+
+        <h3 class="frame-picker-title">프레임 선택</h3>
+        <div class="frame-picker" id="framePicker">
+            <div class="empty-gallery">프레임 불러오는 중...</div>
+        </div>
+
+        <div class="frame-controls">
+            <button class="btn-frame btn-create-frame" onclick="createFourcut()" id="btnCreateFrame">
+                네컷 생성
+            </button>
+            <button class="btn-frame btn-reset" onclick="resetFrame()">
+                초기화
+            </button>
+        </div>
+    </div>
+
+    <div class="photo-section">
+        <h3>사진 선택</h3>
+        <div class="photo-grid" id="photoGrid">
+            <div class="empty-gallery">사진이 없습니다</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const splashScreen = document.getElementById('splashScreen');
+    const shootingScreen = document.getElementById('shootingScreen');
+    const editingScreen = document.getElementById('editingScreen');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const generatingScreen = document.getElementById('generatingScreen');
+    const generatingProgressFill = document.getElementById('generatingProgressFill');
+    const generatingProgressLabel = document.getElementById('generatingProgressLabel');
+    const liveviewImg = document.getElementById('liveviewImg');
+    const liveviewFrame = document.getElementById('liveviewFrame');
+    const countdownEl = document.getElementById('countdown');
+    const statusEl = document.getElementById('statusDisplay');
+    const galleryList = document.getElementById('galleryList');
+    const photoGrid = document.getElementById('photoGrid');
+    const framePreview = document.getElementById('framePreview');
+    const framePicker = document.getElementById('framePicker');
+    const qrResultOverlay = document.getElementById('qrResultOverlay');
+    const qrResultPhoto = document.getElementById('qrResultPhoto');
+    const qrResultQrImg = document.getElementById('qrResultQrImg');
+    const qrResultQrBox = document.getElementById('qrResultQrBox');
+
+    let allImages = [];
+    let selectedPhotos = [];
+    let availableFrames = [];
+    let selectedFrameId = null;
+
+    // ── WebSocket: 딱 하나의 연결만 유지 ─────────────────────
+    // ★ 수정: onerror/onclose가 동시에 각각 재연결을 걸어서 연결이
+    //   기하급수적으로 늘어나던 버그를 고쳤다. 재연결은 onclose에서만
+    //   하고, 이미 연결(또는 연결 시도) 중이면 새로 만들지 않는다.
+    let ws = null;
+    let wsReconnectTimer = null;
+    let sequenceCompleteResolver = null;  // 촬영 시퀀스 종료를 기다리기 위한 Promise resolver
+
+    function connectWebSocket() {
+        // 이미 연결되어 있거나 연결 시도 중이면 중복 생성하지 않음
+        if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+            return;
+        }
+
+        ws = new WebSocket('ws://localhost:8000/ws/liveview');
+
+        ws.onopen = () => {
+            console.log('WebSocket 연결됨');
+            if (wsReconnectTimer) {
+                clearTimeout(wsReconnectTimer);
+                wsReconnectTimer = null;
+            }
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleWsMessage(data);
+        };
+
+        // onerror는 재연결을 걸지 않는다. WebSocket 스펙상 에러가 나면
+        // 뒤이어 onclose가 반드시 호출되므로, 재연결은 onclose 한 곳에서만.
+        ws.onerror = () => {
+            console.log('WebSocket 에러 발생 (onclose에서 재연결 처리)');
+        };
+
+        ws.onclose = () => {
+            if (!wsReconnectTimer) {
+                wsReconnectTimer = setTimeout(() => {
+                    wsReconnectTimer = null;
+                    connectWebSocket();
+                }, 3000);
+            }
+        };
+    }
+
+    // 백엔드가 보내는 진행상황 메시지 처리
+    function handleWsMessage(data) {
+        switch (data.type) {
+            case 'frame':
+                liveviewImg.src = 'data:image/jpeg;base64,' + data.data;
+                break;
+
+            case 'countdown':
+                statusEl.textContent = `${data.shot} / ${data.count} 컷 촬영 준비`;
+                statusEl.classList.add('show');
+                countdownEl.textContent = data.seconds;
+                countdownEl.classList.add('show');
+                break;
+
+            case 'capturing':
+                countdownEl.textContent = '📸';
+                statusEl.textContent = `${data.shot} / ${data.count} 컷 촬영 중...`;
+                break;
+
+            case 'shot_saved':
+                countdownEl.classList.remove('show');
+                statusEl.textContent = `${data.shot} / ${data.count} 컷 저장 완료`;
+                loadGallery();  // 컷 저장될 때마다 바로 갤러리 갱신
+                break;
+
+            case 'shot_failed':
+                countdownEl.classList.remove('show');
+                statusEl.textContent = `${data.shot} / ${data.count} 컷 저장 실패`;
+                break;
+
+            case 'sequence_complete':
+                countdownEl.classList.remove('show');
+                statusEl.classList.remove('show');
+                // 실제로 촬영 시퀀스가 끝났다고 백엔드가 확정해준 시점에만
+                // 편집 화면으로 넘어간다 (예전처럼 고정 시간 기다리지 않음)
+                if (sequenceCompleteResolver) {
+                    sequenceCompleteResolver();
+                    sequenceCompleteResolver = null;
+                }
+                break;
+        }
+    }
+
+    // API 호출
+    async function apiCall(endpoint, method = 'GET', body = null) {
+        const options = { method };
+        if (body) {
+            options.headers = { 'Content-Type': 'application/json' };
+            options.body = JSON.stringify(body);
+        }
+        const response = await fetch(`http://localhost:8000${endpoint}`, options);
+        return response.json();
+    }
+
+    // ── 라이브뷰 화면비를 최종 프레임 칸 비율에 맞추기 ──────────
+    async function applyLiveviewAspectRatio() {
+        try {
+            const data = await apiCall('/api/frames/aspect-ratio');
+            if (data.aspect_ratio) {
+                liveviewFrame.style.aspectRatio = data.aspect_ratio;
+            }
+        } catch (e) {
+            console.error('라이브뷰 화면비 조회 실패, 기본값 사용:', e);
+        }
+    }
+
+    // ── 프레임(디자인) 목록 불러오기 ───────────────────────────
+    async function loadFrames() {
+        try {
+            const data = await apiCall('/api/frames');
+            availableFrames = data.frames || [];
+
+            if (availableFrames.length === 0) {
+                framePicker.innerHTML = '<div class="empty-gallery">등록된 프레임이 없습니다</div>';
+                return;
+            }
+
+            if (!selectedFrameId) {
+                selectedFrameId = availableFrames[0].id;  // 기본값: 첫 번째 프레임
+            }
+
+            framePicker.innerHTML = '';
+            availableFrames.forEach(frame => {
+                const item = document.createElement('div');
+                item.className = 'frame-picker-item' + (frame.id === selectedFrameId ? ' selected' : '');
+                item.setAttribute('data-frame-id', frame.id);
+                item.title = frame.name;
+                item.innerHTML = `<img src="http://localhost:8000${frame.thumbnail_url}" />`;
+                item.onclick = () => selectFrame(frame.id);
+                framePicker.appendChild(item);
+            });
+
+            updateFramePreview();  // 프레임 정보 로드됐으니 미리보기도 바로 반영
+        } catch (e) {
+            console.error('프레임 목록 로드 실패:', e);
+            framePicker.innerHTML = '<div class="empty-gallery">프레임을 불러오지 못했습니다</div>';
+        }
+    }
+
+    function selectFrame(frameId) {
+        selectedFrameId = frameId;
+        document.querySelectorAll('.frame-picker-item').forEach(el => {
+            el.classList.toggle('selected', el.getAttribute('data-frame-id') === frameId);
+        });
+        updateFramePreview();  // ★ 프레임 바꾸면 미리보기도 즉시 갱신
+    }
+
+    // 촬영 시작
+    async function startShooting() {
+        splashScreen.style.display = 'none';
+        shootingScreen.classList.add('active');
+
+        connectWebSocket();
+        applyLiveviewAspectRatio();  // ★ 라이브뷰를 프레임 칸 비율로 맞춤
+        loadFrames();  // 편집 화면 넘어가기 전에 미리 불러와둠
+
+        // 백엔드가 'sequence_complete'를 보내줄 때까지 기다리는 Promise
+        const waitForSequenceComplete = new Promise((resolve) => {
+            sequenceCompleteResolver = resolve;
+        });
+
+        try {
+            const result = await apiCall('/api/four-cut/start', 'POST', {
+                interval: 3,
+                count: 4
+            });
+
+            if (!result.success) {
+                throw new Error(result.message || '촬영 시작 실패');
+            }
+
+            // ★ 예전: 고정 20초 기다렸다가 무조건 다음 화면으로 넘어감
+            // ★ 지금: 백엔드가 실제로 4컷 다 끝냈다고 알려줄 때까지 대기
+            await waitForSequenceComplete;
+
+            // 화면 전환 전, 갤러리를 최종적으로 다시 불러오는 동안 로딩 표시
+            loadingOverlay.classList.add('show');
+            await loadGallery();
+            // 최소 노출 시간을 살짝 줘서 화면이 너무 순간적으로 깜빡이지 않게
+            await sleep(600);
+            loadingOverlay.classList.remove('show');
+
+            shootingScreen.classList.remove('active');
+            editingScreen.classList.add('active');
+
+        } catch (e) {
+            console.error('촬영 실패:', e);
+            loadingOverlay.classList.remove('show');
+            splashScreen.style.display = 'flex';
+            shootingScreen.classList.remove('active');
+        }
+    }
+
+    // 갤러리 로드
+    async function loadGallery() {
+        try {
+            const data = await apiCall('/api/images');
+            allImages = data.images;
+
+            // 촬영 화면의 우측 갤러리
+            galleryList.innerHTML = '';
+            if (data.images.length === 0) {
+                galleryList.innerHTML = '<div class="empty-gallery">촬영 중...</div>';
+            }
+            data.images.forEach(img => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.setAttribute('data-id', img.id);
+                item.innerHTML = `<img src="http://localhost:8000/api/images/${img.id}" />`;
+                item.onclick = () => toggleGallery(item, img.id);
+                galleryList.appendChild(item);
+            });
+
+            // 편집 화면의 사진 그리드
+            photoGrid.innerHTML = '';
+            if (data.images.length === 0) {
+                photoGrid.innerHTML = '<div class="empty-gallery">사진이 없습니다</div>';
+            }
+            data.images.forEach(img => {
+                const item = document.createElement('div');
+                item.className = 'photo-item';
+                item.setAttribute('data-id', img.id);
+                item.innerHTML = `<img src="http://localhost:8000/api/images/${img.id}" />`;
+                item.onclick = () => selectPhoto(item, img.id);
+                photoGrid.appendChild(item);
+            });
+        } catch (e) {
+            console.error('갤러리 로드 실패:', e);
+        }
+    }
+
+    // 갤러리 토글
+    function toggleGallery(element, imageId) {
+        element.classList.toggle('selected');
+    }
+
+    // 사진 선택
+    function selectPhoto(element, imageId) {
+        element.classList.toggle('selected');
+        selectedPhotos = Array.from(document.querySelectorAll('.photo-item.selected'))
+            .map(el => el.getAttribute('data-id'));
+
+        updateFramePreview();
+    }
+
+    // 프레임 미리보기 업데이트
+    // ★ 선택된 프레임의 실제 비율(aspect-ratio)과 칸 좌표(%)를 그대로 써서
+    //   사진 4장을 절대위치로 깔고, 그 위에 프레임 PNG(테두리)를 겹쳐 보여준다.
+    //   -> 실제 "네컷 생성" 결과와 미리보기가 시각적으로 일치한다.
+    function updateFramePreview() {
+        const frame = availableFrames.find(f => f.id === selectedFrameId);
+
+        framePreview.innerHTML = '';
+
+        if (!frame) {
+            // 프레임 정보가 아직 없으면 빈 정사각형 플레이스홀더만 표시
+            framePreview.style.aspectRatio = '1';
+            const btnCreate = document.getElementById('btnCreateFrame');
+            if (btnCreate) btnCreate.disabled = true;
+            return;
+        }
+
+        framePreview.style.aspectRatio = `${frame.width} / ${frame.height}`;
+
+        frame.slots.forEach((slot, index) => {
+            const leftPct = (slot.x0 / frame.width) * 100;
+            const topPct = (slot.y0 / frame.height) * 100;
+            const widthPct = ((slot.x1 - slot.x0) / frame.width) * 100;
+            const heightPct = ((slot.y1 - slot.y0) / frame.height) * 100;
+
+            const slotEl = document.createElement('div');
+            slotEl.className = 'frame-slot' + (selectedPhotos[index] ? '' : ' empty');
+            slotEl.style.left = `${leftPct}%`;
+            slotEl.style.top = `${topPct}%`;
+            slotEl.style.width = `${widthPct}%`;
+            slotEl.style.height = `${heightPct}%`;
+
+            if (selectedPhotos[index]) {
+                const img = allImages.find(i => i.id === selectedPhotos[index]);
+                if (img) {
+                    slotEl.innerHTML = `<img src="http://localhost:8000/api/images/${img.id}" />`;
+                }
+            }
+            framePreview.appendChild(slotEl);
+        });
+
+        // 사진들 위에 프레임 PNG(테두리/디자인)를 그대로 겹쳐서 보여줌
+        const overlay = document.createElement('img');
+        overlay.className = 'frame-overlay-img';
+        overlay.src = `http://localhost:8000${frame.thumbnail_url}`;
+        framePreview.appendChild(overlay);
+
+        const btnCreate = document.getElementById('btnCreateFrame');
+        if (btnCreate) btnCreate.disabled = selectedPhotos.length !== 4;
+    }
+
+    // 프레임 초기화
+    function resetFrame() {
+        Array.from(photoGrid.querySelectorAll('.photo-item')).forEach(item => {
+            item.classList.remove('selected');
+        });
+        selectedPhotos = [];
+        updateFramePreview();
+    }
+
+    // ── 네컷 생성 중 가짜(추정) 진행률 표시 ─────────────────────
+    // fetch 하나로 압축+업로드+QR생성이 서버에서 한 번에 처리되는 구조라
+    // 실제 진행률을 프론트가 알 방법이 없다. 그래서 90%까지는 점점
+    // 느려지는 속도로 자동 증가시키고, 실제 응답이 오면 100%로 바로 채운다.
+    let generatingProgressTimer = null;
+    let generatingProgressValue = 0;
+
+    function updateGeneratingProgressUI(percent) {
+        generatingProgressFill.style.width = `${percent}%`;
+        generatingProgressLabel.textContent = `${Math.round(percent)}%`;
+    }
+
+    function startGeneratingProgress() {
+        generatingProgressValue = 0;
+        updateGeneratingProgressUI(0);
+        generatingProgressTimer = setInterval(() => {
+            const remaining = 90 - generatingProgressValue;
+            const increment = Math.max(0.5, remaining / 12);
+            generatingProgressValue = Math.min(90, generatingProgressValue + increment);
+            updateGeneratingProgressUI(generatingProgressValue);
+        }, 150);
+    }
+
+    function finishGeneratingProgress() {
+        if (generatingProgressTimer) clearInterval(generatingProgressTimer);
+        updateGeneratingProgressUI(100);
+    }
+
+    function resetGeneratingProgress() {
+        if (generatingProgressTimer) clearInterval(generatingProgressTimer);
+        generatingProgressValue = 0;
+        updateGeneratingProgressUI(0);
+    }
+
+    // 네컷 생성
+    async function createFourcut() {
+        const btnCreate = document.getElementById('btnCreateFrame');
+
+        if (selectedPhotos.length !== 4) {
+            alert('4개의 사진을 모두 선택하세요!');
+            return;
+        }
+
+        // ★ 버튼 즉시 비활성화 - 연타로 같은 요청이 중복 전송되는 것 방지
+        if (btnCreate.disabled) return;
+        btnCreate.disabled = true;
+
+        // ★ "시작하기" 화면 대신 "네컷 생성중" 화면 + 진행률 표시
+        generatingScreen.classList.add('show');
+        startGeneratingProgress();
+
+        try {
+            const result = await apiCall('/api/fourcut/create', 'POST', {
+                image_ids: selectedPhotos,
+                frame_id: selectedFrameId
+            });
+
+            if (result.success) {
+                finishGeneratingProgress();
+                await sleep(300);  // 100% 채워진 걸 잠깐 보여주고 전환
+                generatingScreen.classList.remove('show');
+                showQrResult(result);
+            } else {
+                throw new Error(result.message || '생성 실패');
+            }
+        } catch (e) {
+            resetGeneratingProgress();
+            generatingScreen.classList.remove('show');
+            alert('생성 실패: ' + e.message);
+        } finally {
+            btnCreate.disabled = false;
+        }
+    }
+
+    // ★ 완성된 네컷 + QR을 화면에 팝업으로 띄우기
+    function showQrResult(result) {
+        // 캐시 방지용 타임스탬프를 붙여서 매번 최신 이미지를 새로 불러오게 함
+        qrResultPhoto.src = `http://localhost:8000/api/fourcut/result?t=${Date.now()}`;
+
+        if (result.s3 && result.s3.qr_base64) {
+            qrResultQrImg.src = `data:image/png;base64,${result.s3.qr_base64}`;
+            qrResultQrBox.style.display = 'flex';
+        } else {
+            // S3/QR 설정이 아직 안 돼있으면 QR 없이 사진만 보여줌
+            qrResultQrBox.style.display = 'none';
+        }
+
+        qrResultOverlay.classList.add('show');
+    }
+
+    function closeQrResult() {
+        qrResultOverlay.classList.remove('show');
+    }
+
+    // 다운로드
+    async function downloadResult() {
+        if (selectedPhotos.length !== 4) {
+            alert('4개의 사진을 모두 선택하세요!');
+            return;
+        }
+
+        try {
+            const result = await apiCall('/api/fourcut/create', 'POST', {
+                image_ids: selectedPhotos,
+                frame_id: selectedFrameId
+            });
+
+            if (result.success) {
+                // ★ result.filepath는 서버(로컬 PC)의 파일 경로라 브라우저에서
+                //   못 엶. 대신 그 이미지를 실제로 내려주는 API 엔드포인트로 연다.
+                window.open(`http://localhost:8000/api/fourcut/result?t=${Date.now()}`, '_blank');
+            }
+        } catch (e) {
+            alert('다운로드 실패: ' + e.message);
+        }
+    }
+
+    // 돌아가기
+    function goBack() {
+        editingScreen.classList.remove('active');
+        shootingScreen.classList.add('active');
+    }
+
+    function sleep(ms) {
+        return new Promise(r => setTimeout(r, ms));
+    }
+</script>
+</body>
+</html>
+
