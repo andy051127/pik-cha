@@ -1,0 +1,68 @@
+{
+  "images": [
+    {
+      "id": "20260907_175739",
+      "filename": "photo_20260907_175739.jpg",
+      "filepath": "images\\photo_20260907_175739.jpg",
+      "shot_number": 1,
+      "timestamp": "2026-09-07T17:57:39.460559",
+      "size": 1926718
+    },
+    {
+      "id": "20260907_175749",
+      "filename": "photo_20260907_175749.jpg",
+      "filepath": "images\\photo_20260907_175749.jpg",
+      "shot_number": 2,
+      "timestamp": "2026-09-07T17:57:49.398691",
+      "size": 1626854
+    },
+    {
+      "id": "20260907_175800",
+      "filename": "photo_20260907_175800.jpg",
+      "filepath": "images\\photo_20260907_175800.jpg",
+      "shot_number": 3,
+      "timestamp": "2026-09-07T17:58:00.484144",
+      "size": 1551992
+    },
+    {
+      "id": "20260907_175810",
+      "filename": "photo_20260907_175810.jpg",
+      "filepath": "images\\photo_20260907_175810.jpg",
+      "shot_number": 4,
+      "timestamp": "2026-09-07T17:58:10.858109",
+      "size": 2005436
+    },
+    {
+      "id": "20260907_175821",
+      "filename": "photo_20260907_175821.jpg",
+      "filepath": "images\\photo_20260907_175821.jpg",
+      "shot_number": 5,
+      "timestamp": "2026-09-07T17:58:21.750014",
+      "size": 1763391
+    },
+    {
+      "id": "20260907_175833",
+      "filename": "photo_20260907_175833.jpg",
+      "filepath": "images\\photo_20260907_175833.jpg",
+      "shot_number": 6,
+      "timestamp": "2026-09-07T17:58:33.558108",
+      "size": 5351636
+    },
+    {
+      "id": "20260907_175844",
+      "filename": "photo_20260907_175844.jpg",
+      "filepath": "images\\photo_20260907_175844.jpg",
+      "shot_number": 7,
+      "timestamp": "2026-09-07T17:58:44.743196",
+      "size": 5351715
+    },
+    {
+      "id": "20260907_175854",
+      "filename": "photo_20260907_175854.jpg",
+      "filepath": "images\\photo_20260907_175854.jpg",
+      "shot_number": 8,
+      "timestamp": "2026-09-07T17:58:54.818906",
+      "size": 2306102
+    }
+  ]
+}
