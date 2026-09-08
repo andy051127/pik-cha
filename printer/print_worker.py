@@ -41,12 +41,17 @@ from PIL import Image, ImageWin
 # ===== 설정 =====================================================================
 API_BASE = os.environ.get(
     "PIKCHA_API_BASE",
-    "https://nwwtnmzm3l.execute-api.ap-northeast-2.amazonaws.com/prod",
+    "https://nwwtnmzm3l.execute-api.ap-northeast-2.amazonaws.com/prod/",
 )
 PRINTER_NAME = os.environ.get("PIKCHA_PRINTER_NAME") or win32print.GetDefaultPrinter()
 POLL_INTERVAL_SEC = 5
 PRINT_WAIT_TIMEOUT_SEC = 120
+MAX_RETRIES_PER_JOB = 3  # 같은 작업이 이 횟수만큼 연속 실패하면 서버에 실패 신고 후 포기
 # ===============================================================================
+
+# session_id별 연속 실패 횟수. 재시도 한도를 넘긴 작업은 report_failed()로 서버 pending
+# 큐에서 제거되게 신고하므로, 신고에 성공하면 더 이상 폴링 결과에도 나타나지 않는다.
+_job_failure_counts: dict[str, int] = {}
 
 # GetDeviceCaps 인덱스 (wingdi.h)
 HORZRES = 8            # 인쇄 가능 영역 폭(px)
@@ -85,6 +90,15 @@ def download_image(url: str, dest_path: str):
 
 def report_complete(session_id: str):
     res = requests.post(f"{API_BASE}/print-complete", json={"session_id": session_id}, timeout=10)
+    res.raise_for_status()
+
+
+def report_failed(session_id: str, error: str):
+    res = requests.post(
+        f"{API_BASE}/print-failed",
+        json={"session_id": session_id, "error": error},
+        timeout=10,
+    )
     res.raise_for_status()
 
 
@@ -191,12 +205,52 @@ def process_job(job: dict):
         pass
 
 
+def _record_failure(session_id: str, error: str):
+    count = _job_failure_counts[session_id] = _job_failure_counts.get(session_id, 0) + 1
+    log(f"⚠️  작업 실패 (session_id={session_id}, {count}/{MAX_RETRIES_PER_JOB}회): {error}")
+    if count >= MAX_RETRIES_PER_JOB:
+        _give_up_on_job(session_id, error)
+
+
+def _give_up_on_job(session_id: str, error: str):
+    """재시도 한도를 넘긴 작업을 서버에 실패로 신고해서 pending 큐(__PENDING_PRINTS__)에서
+    제거되게 함. 신고 자체가 네트워크 문제로 실패하면 다음 폴링에서 다시 시도한다 —
+    Lambda 쪽 printStatus가 갱신되기 전까지는 pending 큐에 그대로 남아있으니 안전함."""
+    try:
+        report_failed(session_id, error)
+        log(f"🛑 반복 실패로 인쇄 포기, 서버에 실패 처리 완료: session_id={session_id}")
+        _job_failure_counts.pop(session_id, None)
+    except requests.RequestException as e:
+        log(f"⚠️  실패 신고 중 네트워크 오류(다음 폴링에 재시도): session_id={session_id}, {e}")
+
+
+def process_pending_jobs():
+    """대기 중인 작업을 하나씩 처리. 한 작업이 실패해도 나머지 작업은 계속 처리되도록
+    작업 단위로 예외를 잡는다(예전에는 작업 하나가 예외를 던지면 루프 전체가 멈춰서,
+    죽은 작업 하나가 뒤에 있는 새 작업들까지 막아버리는 문제가 있었음)."""
+    for job in get_pending_jobs():
+        session_id = job["session_id"]
+
+        if _job_failure_counts.get(session_id, 0) >= MAX_RETRIES_PER_JOB:
+            _give_up_on_job(session_id, "반복 실패")
+            continue
+
+        try:
+            process_job(job)
+            _job_failure_counts.pop(session_id, None)
+        except requests.RequestException as e:
+            _record_failure(session_id, str(e))
+        except Exception as e:
+            log(f"❌ 예상치 못한 오류 (session_id={session_id}):")
+            traceback.print_exc()
+            _record_failure(session_id, str(e))
+
+
 def main():
     log(f"인쇄 워커 시작. API_BASE={API_BASE}, PRINTER_NAME={PRINTER_NAME}")
     while True:
         try:
-            for job in get_pending_jobs():
-                process_job(job)
+            process_pending_jobs()
         except requests.RequestException as e:
             log(f"⚠️  네트워크 오류 (다음 폴링에 재시도): {e}")
         except Exception:
