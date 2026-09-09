@@ -56,6 +56,7 @@ def _handle_print_jobs():
         result.append({
             "session_id": job["session_id"],
             "download_url": download_url,
+            "quantity": int(job.get("quantity", 1)),
         })
 
     return _response(200, {"jobs": result})

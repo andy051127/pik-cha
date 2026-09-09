@@ -22,14 +22,26 @@ import threading
 import time
 import json
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageDraw
 import io
 
 from image_manager import ImageManager
-from edsdk_worker import EdsdkWorker
-from edsdk_wrapper import events
 import aws_uploader
 import frame_compositor
+
+# ★ [임시/TEMP] EDSDK.dll이 dll/ 폴더에 아예 없어도(카메라 없이 테스트) 서버가
+#   뜨도록, 로드 실패를 여기서 잡아서 EDSDK_AVAILABLE=False로 표시만 하고 넘어감.
+#   camera 전역변수가 앞으로 계속 None으로 남으므로 아래 목업 분기들이 자연히 탐.
+#   DLL을 dll/ 폴더에 넣으면 이 try가 성공해서 자동으로 원래 동작으로 돌아감.
+try:
+    from edsdk_worker import EdsdkWorker
+    from edsdk_wrapper import events
+    EDSDK_AVAILABLE = True
+except Exception as e:
+    print(f"⚠️  [MOCK] EDSDK 로드 실패({e}) - DLL 없이 목업 모드로 실행합니다")
+    EDSDK_AVAILABLE = False
+    EdsdkWorker = None
+    events = None
 
 app = FastAPI()
 
@@ -47,7 +59,7 @@ camera = None
 image_manager = ImageManager()
 is_shooting = False
 liveview_active = False
-worker = EdsdkWorker()  # 싱글톤 워커 인스턴스
+worker = EdsdkWorker() if EDSDK_AVAILABLE else None  # 싱글톤 워커 인스턴스 (DLL 없으면 None)
 
 # ★ 백엔드 진행상황(카운트다운/촬영완료 등)을 프론트로 실시간 전달하기 위한 상태
 active_websockets: list[WebSocket] = []
@@ -76,6 +88,9 @@ def broadcast_status(message: dict):
 def init_camera():
     """카메라 초기화 (초기화~세션 오픈은 전부 워커 스레드 내부에서 처리됨)"""
     global camera
+    if not EDSDK_AVAILABLE:
+        print("⚠️  [MOCK] EDSDK 미탑재 - 카메라 초기화 건너뜀 (목업 모드로 계속 진행)")
+        return False
     try:
         worker.start()  # ★ 여기 안에서 init_sdk~open_session까지 전부 처리
         camera = worker.camera
@@ -97,6 +112,20 @@ def cleanup_camera():
             print(f"⚠️  카메라 종료 중 에러: {e}")
 
 
+# ★ [임시/TEMP] 카메라 없이 테스트할 때 쓰는 목업 사진 생성기.
+#   실제 카메라 붙이면 run_four_cut의 mock 분기 자체를 안 타서 이 함수도 안 쓰임 -
+#   테스트 끝나면 이 함수와 호출부(run_four_cut의 camera is None 분기)만 지우면 원복됨.
+def _generate_mock_photo_bytes(shot_num: int) -> bytes:
+    """CAPTURE_ASPECT(175.5:241.8)에 가까운 세로 비율의 목업 JPEG 생성."""
+    colors = [(220, 120, 120), (120, 180, 220), (150, 210, 140), (230, 190, 100)]
+    img = Image.new("RGB", (900, 1240), color=colors[shot_num % len(colors)])
+    draw = ImageDraw.Draw(img)
+    draw.text((60, 60), f"MOCK SHOT #{shot_num}", fill=(255, 255, 255))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=90)
+    return buf.getvalue()
+
+
 # ══════════════════════════════════════════════════════════════════
 # WebSocket: 라이브뷰 스트리밍
 # ══════════════════════════════════════════════════════════════════
@@ -109,9 +138,18 @@ async def websocket_liveview(websocket: WebSocket):
     print("🔌 WebSocket 클라이언트 연결")
     active_websockets.append(websocket)
 
+    # ★ [임시/TEMP] 카메라 없이 테스트: camera가 None이면 실제 라이브뷰 대신
+    #   웹소켓 연결만 조용히 유지한다. worker.start_liveview()는 카메라가 없으면
+    #   즉시 예외를 던지는데, 그러면 아래 except/finally로 빠져서 웹소켓이 바로
+    #   닫혀버리고, active_websockets에서도 빠져서 broadcast_status()가
+    #   sequence_complete를 못 보내는 상황이 생김 - 그러면 프론트가 촬영 화면에서
+    #   영영 못 넘어감. 카메라 연결되면 이 분기는 자동으로 안 타게 됨.
     try:
-        worker.start_liveview()
-        liveview_active = True
+        if camera is not None:
+            worker.start_liveview()
+            liveview_active = True
+        else:
+            print("⚠️  [MOCK] 카메라 미연결 - 라이브뷰 없이 진행상황 브로드캐스트만 유지")
         await asyncio.sleep(0.5)
 
         while True:
@@ -120,13 +158,14 @@ async def websocket_liveview(websocket: WebSocket):
             #   프레임 요청 순서를 안전하게 관리해주므로 이 제한이 필요 없다.
             #   (셔터 명령이 큐에 있는 짧은 순간엔 프레임 요청이 그 뒤에서
             #   대기했다가 처리되므로 화면이 살짝씩 멈칫할 수는 있지만 안전함)
-            try:
-                frame = worker.get_liveview_frame()
-                if frame:
-                    frame_b64 = base64.b64encode(frame).decode()
-                    await websocket.send_json({"type": "frame", "data": frame_b64})
-            except Exception:
-                pass
+            if camera is not None:
+                try:
+                    frame = worker.get_liveview_frame()
+                    if frame:
+                        frame_b64 = base64.b64encode(frame).decode()
+                        await websocket.send_json({"type": "frame", "data": frame_b64})
+                except Exception:
+                    pass
 
             await asyncio.sleep(0.1)  # ~10fps
 
@@ -136,7 +175,8 @@ async def websocket_liveview(websocket: WebSocket):
         liveview_active = False
         if websocket in active_websockets:
             active_websockets.remove(websocket)
-        worker.stop_liveview()
+        if camera is not None:
+            worker.stop_liveview()
         try:
             await websocket.close()
         except Exception:
@@ -160,9 +200,12 @@ async def start_four_cut(request: FourCutStartRequest):
     interval = request.interval
     count = request.count
     ticket_number = request.ticket_number
+    print(f"🎫 /api/four-cut/start 요청 수신 - ticket_number={ticket_number!r}")
 
-    if not camera:
-        raise HTTPException(status_code=400, detail="카메라 미연결")
+    # ★ [임시/TEMP] 원래는 카메라 미연결 시 여기서 막았는데, 카메라/프린터 없이
+    #   웨이팅→촬영→인화 연결 흐름을 테스트할 수 있도록 막지 않고 목업 모드로
+    #   진행시킴 (아래 run_four_cut에서 camera is None이면 목업 분기를 탐).
+    #   실제 카메라 붙이면 자동으로 원래 동작으로 돌아감 - 이 가드를 되살릴 필요 없음.
 
     if is_shooting:
         raise HTTPException(status_code=400, detail="이미 촬영 중입니다")
@@ -182,6 +225,27 @@ async def start_four_cut(request: FourCutStartRequest):
 
             for shot_num in range(1, count + 1):
                 try:
+                    # ★ [임시/TEMP] 카메라 없이 테스트: 실제 EDSDK 셔터/다운로드 대신
+                    #   카운트다운만 실시간으로 흉내내고 목업 이미지를 저장한다.
+                    #   camera가 잡히면(실제 카메라 연결) 이 분기는 안 타고 바로
+                    #   아래 실촬영 로직으로 감 - 되돌릴 때 이 if 블록만 지우면 됨.
+                    if camera is None:
+                        print(f"📸 [MOCK] {shot_num}/{count}번째 (카메라 미연결 - 목업 진행)")
+                        for sec in range(interval, 0, -1):
+                            broadcast_status({
+                                "type": "countdown", "shot": shot_num, "count": count, "seconds": sec,
+                            })
+                            time.sleep(1)
+
+                        broadcast_status({"type": "capturing", "shot": shot_num, "count": count})
+                        time.sleep(0.3)  # 셔터 흉내
+
+                        photo_bytes = _generate_mock_photo_bytes(shot_num)
+                        image_manager.save_image(photo_bytes, shot_number=shot_num)
+                        print(f"✅ [MOCK] {shot_num}번째 목업 이미지 저장됨")
+                        broadcast_status({"type": "shot_saved", "shot": shot_num, "count": count})
+                        continue
+
                     print(f"\n{'─'*50}")
                     print(f"📸 {shot_num}/{count}번째 촬영 준비 중...")
                     print(f"{'─'*50}")
@@ -488,6 +552,7 @@ async def create_fourcut_composited(
     image_ids: str = Form(None),  # JSON 배열 문자열, 예: '["20260904_..." , ...]'
     name: str = Form(None),  # Personal_Info 화면에서 입력한 이름
     phone_number: str = Form(None),  # Personal_Info 화면에서 입력한 전화번호
+    print_quantity: str = Form(None),  # Number_of_Prints 화면에서 고른 인쇄 매수
 ):
     """
     ★ 프론트(Select_Frame v2)가 로고+패턴+사진+프레임색까지 Canvas로 이미
@@ -526,9 +591,14 @@ async def create_fourcut_composited(
         # image_ids를 안 보낸 경우(구버전 프론트 호환) - 최근 4장으로 대체
         cut_paths = [img["filepath"] for img in all_images[-4:]]
 
+    try:
+        print_quantity_int = int(print_quantity) if print_quantity else 1
+    except ValueError:
+        print_quantity_int = 1
+
     # ★ AWS 연동 지점: /api/fourcut/create와 완전히 동일한 업로드 로직 재사용
     upload_result = await asyncio.to_thread(
-        aws_uploader.upload_fourcut_session, cut_paths, str(output_path), name, phone_number
+        aws_uploader.upload_fourcut_session, cut_paths, str(output_path), name, phone_number, print_quantity_int
     )
 
     response = {

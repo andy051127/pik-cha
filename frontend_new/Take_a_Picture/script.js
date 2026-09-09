@@ -24,7 +24,7 @@ const shotTotalEl = document.getElementById("shotTotal");
 const flashOverlay = document.getElementById("flashOverlay");
 
 const TOTAL_SHOTS = 8;       // 8컷
-const SECONDS_PER_SHOT = 5;  // 컷당 5초 간격
+const SECONDS_PER_SHOT = 1;  // ★ [임시/TEMP] 테스트 속도용 1초 (원래 5초 - 테스트 끝나면 되돌릴 것)
 
 // ★ 저장본 크롭 비율.
 //   review_photo(Review_Photos)의 프레임 슬롯과 동일한 세로 비율(175.5 : 241.8).

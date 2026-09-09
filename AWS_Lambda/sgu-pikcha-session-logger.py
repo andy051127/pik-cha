@@ -30,8 +30,8 @@ def handler(event, context):
         capture_date = now.strftime("%Y-%m-%d")
 
         # put_item(전체 덮어쓰기) 대신 update_item 사용: presign이 /upload-url 시점에
-        # 먼저 기록해둔 name/phoneNumber를 여기서 덮어써버리면 안 되기 때문
-        table.update_item(
+        # 먼저 기록해둔 name/phoneNumber/printQuantity를 여기서 덮어써버리면 안 되기 때문
+        updated = table.update_item(
             Key={"session_id": session_id},
             UpdateExpression="""
                 SET #bucket = :bucket,
@@ -42,6 +42,7 @@ def handler(event, context):
                     download_url_issued = if_not_exists(download_url_issued, :false),
                     sms_sent = if_not_exists(sms_sent, :false),
                     printStatus = if_not_exists(printStatus, :pending),
+                    printQuantity = if_not_exists(printQuantity, :one),
                     #name = if_not_exists(#name, :empty_str),
                     phoneNumber = if_not_exists(phoneNumber, :empty_str)
             """,
@@ -56,13 +57,17 @@ def handler(event, context):
                 ":capture_date": capture_date,
                 ":false": False,
                 ":pending": "pending",
+                ":one": 1,
                 ":empty_str": "",
             },
+            ReturnValues="ALL_NEW",
         )
         print(f"✅ DynamoDB 기록 완료: session_id={session_id}, key={key}")
 
+        print_quantity = int(updated.get("Attributes", {}).get("printQuantity", 1))
+
         _update_stats(session_id, capture_date, now, object_size)
-        _add_pending_print(session_id, bucket, key)
+        _add_pending_print(session_id, bucket, key, print_quantity)
         processed += 1
 
     return {"statusCode": 200, "body": json.dumps({"processed": processed})}
@@ -117,9 +122,10 @@ def _update_stats(session_id: str, capture_date: str, now: datetime, object_size
     print(f"📊 통계 갱신 완료: session_id={session_id}")
 
 
-def _add_pending_print(session_id: str, bucket: str, key: str):
+def _add_pending_print(session_id: str, bucket: str, key: str, quantity: int = 1):
     """__PENDING_PRINTS__ 집계 아이템에 인쇄 대기 job 추가.
-    print_worker.py가 GET /print-jobs로 이 리스트를 폴링해서 인쇄를 진행함."""
+    print_worker.py가 GET /print-jobs로 이 리스트를 폴링해서 인쇄를 진행함.
+    quantity: Number_of_Prints에서 고른 매수 - print_worker.py가 이 매수만큼 반복 인쇄."""
 
     table.update_item(
         Key={"session_id": PENDING_PRINTS_KEY},
@@ -131,6 +137,7 @@ def _add_pending_print(session_id: str, bucket: str, key: str):
         "session_id": session_id,
         "bucket": bucket,
         "key": key,
+        "quantity": quantity,
     }]
 
     table.update_item(

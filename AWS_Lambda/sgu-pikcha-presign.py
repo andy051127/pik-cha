@@ -33,6 +33,7 @@ def _handle_upload_url(event):
     filenames = body.get("filenames", [])
     name = body.get("name", "")
     phone_number = body.get("phone_number", "")
+    print_quantity = body.get("print_quantity")
 
     if not session_id or not filenames:
         return _response(400, {"error": "session_id, filenames가 필요합니다"})
@@ -51,18 +52,28 @@ def _handle_upload_url(event):
         )
         files[filename] = {"upload_url": upload_url, "key": key}
 
-    # 이름/전화번호는 선택 입력값. 사진이 실제로 올라가기 전이라 세션 항목이 아직
-    # 없을 수도 있어서 upsert(update_item)로 미리 만들어둠. session-logger가 이후
+    # 이름/전화번호/인쇄매수는 선택 입력값. 사진이 실제로 올라가기 전이라 세션 항목이
+    # 아직 없을 수도 있어서 upsert(update_item)로 미리 만들어둠. session-logger가 이후
     # 같은 항목을 put_item이 아니라 update_item으로 건드리므로 여기 값이 덮어써지지 않음
+    update_expr = "SET #name = :name, phoneNumber = :phone"
+    expr_values = {":name": name, ":phone": phone_number}
+    try:
+        quantity_int = int(print_quantity) if print_quantity else None
+    except (TypeError, ValueError):
+        quantity_int = None
+    if quantity_int and quantity_int > 0:
+        update_expr += ", printQuantity = :quantity"
+        expr_values[":quantity"] = quantity_int
+
     try:
         table.update_item(
             Key={"session_id": session_id},
-            UpdateExpression="SET #name = :name, phoneNumber = :phone",
+            UpdateExpression=update_expr,
             ExpressionAttributeNames={"#name": "name"},
-            ExpressionAttributeValues={":name": name, ":phone": phone_number},
+            ExpressionAttributeValues=expr_values,
         )
     except Exception as e:
-        print(f"⚠️  name/phoneNumber 기록 실패 (무시): {e}")
+        print(f"⚠️  name/phoneNumber/printQuantity 기록 실패 (무시): {e}")
 
     print(f"✅ presigned 업로드 URL {len(files)}개 발급: session_id={session_id}")
     return _response(200, {"files": files})

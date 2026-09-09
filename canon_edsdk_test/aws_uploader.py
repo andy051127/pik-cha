@@ -68,15 +68,15 @@ def _request_upload_urls(
     filenames: list[str],
     name: str | None = None,
     phone_number: str | None = None,
+    print_quantity: int | None = None,
 ) -> dict | None:
     """
     API Gateway -> presign_lambda 호출해서 여러 파일의 presigned PUT URL을 한 번에 받는다.
     반환: {"files": {filename: {"upload_url":..., "key":...}, ...}} 또는 실패 시 None
 
-    ★ name/phone_number: Personal_Info에서 입력한 값. 여기서 보내는 JSON body에
-      실어 보내지만, 이 값이 실제로 DynamoDB에 저장되려면 이 요청을 받는
-      presign_lambda(또는 세션을 기록하는 다른 Lambda)가 이 필드를 읽어서
-      DynamoDB에 써주도록 AWS 쪽 코드도 같이 수정해야 한다.
+    ★ name/phone_number/print_quantity: Personal_Info(이제는 순번 입력)/Number_of_Prints에서
+      온 값. 여기서 보내는 JSON body에 실어 보내면, presign_lambda가 세션 아이템에
+      upsert해두고, 그걸 session-logger가 인쇄 큐에 넣을 때 quantity로 그대로 씀.
     """
     try:
         body = {"session_id": session_id, "filenames": filenames}
@@ -84,6 +84,8 @@ def _request_upload_urls(
             body["name"] = name
         if phone_number:
             body["phone_number"] = phone_number
+        if print_quantity:
+            body["print_quantity"] = print_quantity
         resp = requests.post(
             f"{API_GATEWAY_URL}/upload-url",
             json=body,
@@ -177,7 +179,11 @@ def advance_waitlist(ticket_number: int | None) -> None:
     다음 팀을 자동으로 호출한다. 이미 촬영은 끝난 뒤라 실패해도 조용히 로그만 남기고
     넘어간다 (대기열 표시만 못 갱신될 뿐, 촬영/인쇄 흐름을 막으면 안 됨).
     """
-    if not API_GATEWAY_URL or ticket_number is None:
+    if ticket_number is None:
+        print("⚠️  [웨이팅] ticket_number가 None이라 advance 호출 건너뜀 (순번 입력 화면을 안 거쳤을 수 있음)")
+        return
+    if not API_GATEWAY_URL:
+        print("⚠️  [웨이팅] API_GATEWAY_URL 미설정이라 advance 호출 건너뜀")
         return
     try:
         requests.post(
@@ -195,6 +201,7 @@ def upload_fourcut_session(
     fourcut_path: str,
     name: str | None = None,
     phone_number: str | None = None,
+    print_quantity: int | None = None,
 ) -> dict | None:
     """
     한 세션의 개별 컷 4장 + 합성본 1장을 presigned URL로 S3에 업로드하고,
@@ -227,7 +234,7 @@ def upload_fourcut_session(
     cut_filenames = [f"cut_{i}.jpg" for i in range(1, len(cut_paths) + 1)]
     all_filenames = cut_filenames + ["fourcut.jpg"]
 
-    presign_result = _request_upload_urls(session_id, all_filenames, name, phone_number)
+    presign_result = _request_upload_urls(session_id, all_filenames, name, phone_number, print_quantity)
     if not presign_result or "files" not in presign_result:
         print("⚠️  [API] presigned URL 발급 실패 - 업로드 중단")
         return None

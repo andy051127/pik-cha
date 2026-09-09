@@ -426,6 +426,17 @@ nextBtn.addEventListener("click", async () => {
         console.log("개인정보(pikcha_personal_info) 읽기 실패 - 이름/전화번호 없이 진행:", e.message);
       }
 
+      // ★ Number_of_Prints 화면에서 고른 인쇄 매수를 같이 보내서, 인쇄 워커가
+      //   실제로 그 매수만큼 뽑도록 함 (안 보내면 서버 쪽에서 1장으로 처리)
+      try {
+        const printQuantityRaw = sessionStorage.getItem("pikcha_print_quantity");
+        if (printQuantityRaw) {
+          formData.append("print_quantity", printQuantityRaw);
+        }
+      } catch (e) {
+        console.log("인쇄 매수(pikcha_print_quantity) 읽기 실패 - 1장으로 진행:", e.message);
+      }
+
       const res = await fetch(`${API_BASE}/api/fourcut/create-composited`, {
         method: "POST",
         body: formData,

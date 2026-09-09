@@ -46,6 +46,7 @@ API_BASE = os.environ.get(
 PRINTER_NAME = os.environ.get("PIKCHA_PRINTER_NAME") or win32print.GetDefaultPrinter()
 POLL_INTERVAL_SEC = 5
 PRINT_WAIT_TIMEOUT_SEC = 120
+SECONDS_PER_COPY_ESTIMATE = 30  # 매수별 대기 타임아웃 계산용 (실제 완료 판정은 스풀 큐가 비는 걸로 함)
 MAX_RETRIES_PER_JOB = 3  # 같은 작업이 이 횟수만큼 연속 실패하면 서버에 실패 신고 후 포기
 # ===============================================================================
 
@@ -126,7 +127,10 @@ def _build_devmode(printer_name: str):
         win32print.ClosePrinter(hPrinter)
 
 
-def print_image(path: str):
+def print_image(path: str, copies: int = 1):
+    """copies장만큼 같은 DC 위에서 StartDoc/EndDoc을 반복 - 스풀러엔 job이 copies개
+    올라가므로, get_queue_length()/wait_until_printed()가 전부 다 빠질 때까지
+    그대로 기다려주면 됨 (별도 대기 로직 필요 없음)."""
     img = Image.open(path)
     if img.mode != "RGB":
         img = img.convert("RGB")
@@ -149,11 +153,12 @@ def print_image(path: str):
         right = phys_w - off_x
         bottom = phys_h - off_y
 
-        hDC.StartDoc(os.path.basename(path))
-        hDC.StartPage()
-        ImageWin.Dib(img).draw(hDC.GetHandleOutput(), (left, top, right, bottom))
-        hDC.EndPage()
-        hDC.EndDoc()
+        for i in range(copies):
+            hDC.StartDoc(os.path.basename(path))
+            hDC.StartPage()
+            ImageWin.Dib(img).draw(hDC.GetHandleOutput(), (left, top, right, bottom))
+            hDC.EndPage()
+            hDC.EndDoc()
     finally:
         hDC.DeleteDC()
 
@@ -186,18 +191,23 @@ def wait_until_printed(timeout_sec: int = PRINT_WAIT_TIMEOUT_SEC) -> bool:
 def process_job(job: dict):
     session_id = job["session_id"]
     download_url = job["download_url"]
+    quantity = max(1, int(job.get("quantity", 1)))
 
-    log(f"인쇄 시작: session_id={session_id}")
+    log(f"인쇄 시작: session_id={session_id}, quantity={quantity}")
 
     local_path = os.path.join(tempfile.gettempdir(), f"pikcha_{session_id}.jpg")
     download_image(download_url, local_path)
-    print_image(local_path)
+    print_image(local_path, copies=quantity)
 
-    if not wait_until_printed():
+    # ★ 완료 보고(=SMS 발송 트리거)는 스풀 큐가 quantity장 전부 빠질 때까지 기다린
+    #   뒤에만 나간다. timeout은 "1장당 30초"를 기준으로 넉넉히 잡은 상한선일 뿐,
+    #   실제 완료 판정 자체는 wait_until_printed()의 큐 감시로 함.
+    timeout = max(PRINT_WAIT_TIMEOUT_SEC, SECONDS_PER_COPY_ESTIMATE * quantity + 60)
+    if not wait_until_printed(timeout_sec=timeout):
         log(f"⚠️  인쇄 완료 확인 실패(타임아웃) — 그래도 완료 처리함: session_id={session_id}")
 
     report_complete(session_id)
-    log(f"✅ 인쇄 완료 보고: session_id={session_id}")
+    log(f"✅ 인쇄 완료 보고 ({quantity}장): session_id={session_id}")
 
     try:
         os.remove(local_path)
