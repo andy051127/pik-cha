@@ -55,6 +55,7 @@ function resetToMain() {
   sessionStorage.removeItem("pikcha_result");
   sessionStorage.removeItem("pikcha_selected_photos");
   sessionStorage.removeItem("pikcha_personal_info");
+  sessionStorage.removeItem("pikcha_ticket_info");
   sessionStorage.removeItem("pikcha_print_quantity");
 
   window.location.href = "../Main/index.html";

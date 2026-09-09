@@ -148,6 +148,48 @@ def create_local_test_qr() -> dict:
     return {"mode": "local_test", "test_url": test_url, "qr_base64": qr_base64}
 
 
+def start_waitlist_session(ticket_number: int) -> tuple[int, dict]:
+    """
+    순번 입력 화면(구 Personal_Info)에서 호출. 웨이팅리스트 Lambda의
+    /waitlist/start-session을 그대로 중계해서, 등록된 학과/학번/이름/전화번호를
+    돌려받는다 (프론트가 다시 물어볼 필요 없게).
+
+    반환: (status_code, response_json). Lambda가 준 상태코드/메시지(404 "등록되지
+    않은 순번" 등)를 그대로 프론트까지 전달하기 위해 status_code도 같이 넘김.
+    """
+    if not API_GATEWAY_URL:
+        return 503, {"error": "웨이팅리스트 기능이 설정되지 않았습니다 (API_GATEWAY_URL 미설정)"}
+    try:
+        resp = requests.post(
+            f"{API_GATEWAY_URL}/waitlist/start-session",
+            json={"ticket_number": ticket_number},
+            timeout=REQUEST_TIMEOUT,
+        )
+        return resp.status_code, resp.json()
+    except requests.RequestException as e:
+        print(f"⚠️  [웨이팅] start-session 호출 실패: {e}")
+        return 502, {"error": "웨이팅리스트 서버에 연결할 수 없습니다"}
+
+
+def advance_waitlist(ticket_number: int | None) -> None:
+    """
+    4컷 촬영이 끝나면(성공/실패 무관하게 카메라가 비는 시점) 호출해서 웨이팅리스트의
+    다음 팀을 자동으로 호출한다. 이미 촬영은 끝난 뒤라 실패해도 조용히 로그만 남기고
+    넘어간다 (대기열 표시만 못 갱신될 뿐, 촬영/인쇄 흐름을 막으면 안 됨).
+    """
+    if not API_GATEWAY_URL or ticket_number is None:
+        return
+    try:
+        requests.post(
+            f"{API_GATEWAY_URL}/waitlist/advance",
+            json={"ticket_number": ticket_number},
+            timeout=REQUEST_TIMEOUT,
+        )
+        print(f"➡️  [웨이팅] 다음 팀 자동 호출 요청: ticket_number={ticket_number}")
+    except requests.RequestException as e:
+        print(f"⚠️  [웨이팅] advance 호출 실패 (무시): {e}")
+
+
 def upload_fourcut_session(
     cut_paths: list[str],
     fourcut_path: str,

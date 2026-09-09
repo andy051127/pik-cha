@@ -151,6 +151,7 @@ async def websocket_liveview(websocket: WebSocket):
 class FourCutStartRequest(BaseModel):
     interval: int = 3
     count: int = 4
+    ticket_number: int | None = None  # 웨이팅리스트 순번 - 촬영 끝나면 이 번호로 다음 팀 자동 호출
 
 @app.post("/api/four-cut/start")
 async def start_four_cut(request: FourCutStartRequest):
@@ -158,6 +159,7 @@ async def start_four_cut(request: FourCutStartRequest):
     global is_shooting
     interval = request.interval
     count = request.count
+    ticket_number = request.ticket_number
 
     if not camera:
         raise HTTPException(status_code=400, detail="카메라 미연결")
@@ -285,6 +287,9 @@ async def start_four_cut(request: FourCutStartRequest):
             broadcast_status({"type": "sequence_complete", "error": str(e)})
         finally:
             is_shooting = False
+            # 성공/실패 무관하게 카메라는 이제 비었으니, 여기서 다음 팀을 자동 호출한다
+            # (인화/SMS 완료를 기다리지 않음 - 그건 별도 비동기 파이프라인)
+            aws_uploader.advance_waitlist(ticket_number)
             print(f"\n{'='*50}")
             print("✨ 촬영 완료! 라이브뷰 활성화됨")
             print(f"{'='*50}\n")
@@ -299,6 +304,27 @@ async def start_four_cut(request: FourCutStartRequest):
 async def four_cut_status():
     """촬영 상태 확인"""
     return {"is_shooting": is_shooting}
+
+
+# ══════════════════════════════════════════════════════════════════
+# API: 웨이팅리스트 순번 입력 (구 Personal_Info를 대체)
+# ══════════════════════════════════════════════════════════════════
+
+class WaitlistStartSessionRequest(BaseModel):
+    ticket_number: int
+
+@app.post("/api/waitlist/start-session")
+async def waitlist_start_session(request: WaitlistStartSessionRequest):
+    """
+    순번 입력 화면에서 호출. aws_uploader를 통해 웨이팅리스트 Lambda를 그대로
+    중계하고, 응답으로 받은 학과/학번/이름/전화번호를 프론트에 돌려준다
+    (이름/전화번호를 다시 입력받지 않기 위함).
+    """
+    status_code, body = await asyncio.to_thread(aws_uploader.start_waitlist_session, request.ticket_number)
+    if status_code != 200:
+        raise HTTPException(status_code=status_code if status_code in range(400, 600) else 502,
+                             detail=body.get("error", "알 수 없는 오류"))
+    return body
 
 
 # ══════════════════════════════════════════════════════════════════

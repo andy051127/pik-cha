@@ -120,6 +120,18 @@ function flash() {
 
 // ── 촬영 시작 (서버에 위임) ────────────────────────────────────
 async function startShooting() {
+  // ★ 순번 입력 화면(Personal_Info)이 저장해둔 ticket_number를 같이 보내서,
+  //   촬영이 끝나면 백엔드가 웨이팅리스트의 다음 팀을 자동으로 호출하게 함
+  let ticketNumber = null;
+  try {
+    const ticketInfoRaw = sessionStorage.getItem("pikcha_ticket_info");
+    if (ticketInfoRaw) {
+      ticketNumber = JSON.parse(ticketInfoRaw).ticketNumber ?? null;
+    }
+  } catch (e) {
+    console.log("순번 정보(pikcha_ticket_info) 읽기 실패 - 순번 없이 진행:", e.message);
+  }
+
   try {
     const res = await fetch(`${API_BASE}/api/four-cut/start`, {
       method: "POST",
@@ -130,6 +142,7 @@ async function startShooting() {
         // ★ 저장본을 review_photo 프레임 슬롯 비율(175.5 : 241.8)로 중앙 크롭 저장
         aspect_w: CAPTURE_ASPECT_W,
         aspect_h: CAPTURE_ASPECT_H,
+        ticket_number: ticketNumber,
       }),
     });
     const result = await res.json();
