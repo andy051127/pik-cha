@@ -12,6 +12,7 @@ body {
 }
 
 .stage {
+  position: relative;
   width: 100vw;
   height: 100vh;
   background: #fff;
@@ -20,28 +21,35 @@ body {
   justify-content: center;
 }
 
-/* ★ 세로형 레이아웃: 좌측 라이브뷰 + 우측 정보 패널 (첨부 시안 기준) */
-.shoot-layout {
+/* 디자인 원본 비율(1342:877)을 유지한 프레임 */
+.frame {
+  position: relative;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(32px, 8vw, 140px);
-  padding: 4vh 6vw;
+  max-width: calc(100vh * 1342 / 877);
+  max-height: calc(100vw * 877 / 1342);
 }
 
-/* 라이브뷰가 들어가는 회색 박스.
-   review_photo 프레임 슬롯과 완전히 동일한 세로 비율(175.5 : 241.8)로 고정.
-   화면이 좁아져도 비율이 깨지지 않도록 height 를 vh/vw 중 작은 쪽에 맞춘다. */
+.stage-bg,
+.count-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 라이브뷰 박스: bg.svg의 회색 사각형(x68 y105 w523 h721 / 1342x877)과
+   정확히 같은 자리에 겹친다. */
 .camera-wrap {
-  position: relative;
-  flex: 0 0 auto;
-  height: min(84vh, 56vw);
-  aspect-ratio: 175.5 / 241.8;
+  position: absolute;
+  left: 5.067%;
+  top: 11.972%;
+  width: 38.972%;
+  height: 82.212%;
   background: #d9d9d9;
   overflow: hidden;
-  border-radius: 4px;
 }
 
 /* scaleX(-1)로 좌우 반전해서 거울처럼 보이게 한다(셀카 미리보기 관례).
@@ -55,59 +63,8 @@ body {
   transform: scaleX(-1);
 }
 
-/* 우측 정보 패널 */
-.panel {
-  flex: 0 0 auto;
-  min-width: clamp(180px, 22vw, 340px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(24px, 5vh, 64px);
-}
-
-/* 라벨과 숫자를 세로로 쌓는 묶음 */
-.panel-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(6px, 1.4vh, 16px);
-}
-
-/* 숫자 위에 붙는 작은 설명 텍스트("촬영 횟수", "남은 시간") */
-.panel-label {
-  font-family: "Chakra Petch", "Consolas", monospace;
-  font-weight: 600;
-  font-size: clamp(16px, 2vw, 28px);
-  color: #4a4a4a;
-  letter-spacing: 0.02em;
-}
-
-.divider {
-  width: 100%;
-  height: 1px;
-  background: #cfcfcf;
-}
-
-.countdown {
-  font-family: "Chakra Petch", "Consolas", monospace;
-  font-weight: 700;
-  font-size: clamp(28px, 5vw, 88px);
-  color: #181818;
-  line-height: 1;
-}
-
-.shot-count {
-  font-family: "Chakra Petch", "Consolas", monospace;
-  font-weight: 500;
-  font-size: clamp(22px, 3.6vw, 64px);
-  color: #181818;
-  line-height: 1;
-}
-
 /* 평소엔 투명하다가 script.js가 .flash 클래스를 붙이면 즉시 하얗게 채워지고,
-   클래스가 빠지면 0.5초에 걸쳐 서서히 사라진다(플래시 효과).
-   ★ 이제 라이브뷰 박스 안에만 오버레이된다. */
+   클래스가 빠지면 0.5초에 걸쳐 서서히 사라진다(플래시 효과). */
 .flash-overlay {
   position: absolute;
   inset: 0;

@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="ko">
+<!-- ★ 새 디자인(Sub_프레임 선택.svg) 적용. 레이아웃 구조/치수는 새 시안을 따르고,
+     실제 로고/프레임/스페셜프레임 자산 개수는 assets 폴더 내용에 맞춰 동적으로 채워진다
+     (시안은 예시 개수만 보여줄 뿐, 실제 개수와 정확히 같을 필요는 없음). -->
 <head>
 <meta charset="UTF-8">
 <title>Select Frame</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="stage">
-    <h1 class="title">프레임을 선택해 주세요!</h1>
+  <div class="viewport">
+    <div class="stage">
+      <div class="topbar"></div>
 
-    <div class="layout">
-      <!-- 왼쪽: 실시간 합성 미리보기 -->
+      <!-- 왼쪽: 실시간 합성 미리보기 (Review_Photos의 보드와 같은 자리/스타일) -->
       <div class="preview-wrap">
         <canvas id="previewCanvas" width="550" height="803"></canvas>
       </div>
 
       <!-- 오른쪽: 카테고리별 선택 -->
       <div class="options">
+        <h1 class="title">프레임을 선택해 주세요!</h1>
+
         <div class="option-group">
           <div class="option-label">Logo</div>
           <div class="swatch-row" id="logoRow"></div>
@@ -40,11 +45,12 @@
           <div class="swatch-row" id="frameColorRow"></div>
         </div>
       </div>
-    </div>
 
-    <div class="footer">
       <div class="footer-hint">QR코드로 사진원본을 다운받을 수 있습니다.</div>
-      <button class="next-btn" id="nextBtn" disabled>NEXT ▶</button>
+      <button class="next-btn" id="nextBtn" disabled>
+        NEXT
+        <svg class="next-arrow" viewBox="0 0 12 14" aria-hidden="true"><path d="M12 7L0 13.9282L0 0.0717969L12 7Z"/></svg>
+      </button>
     </div>
   </div>
 

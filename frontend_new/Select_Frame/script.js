@@ -1,9 +1,13 @@
-// Select_Frame 화면 로직 (★ v4 - 실제 에셋 15종 반영)
+// Select_Frame 화면 로직 (★ v5 - Special Frame에 할로윈/헬로키티 추가, mint_black_star 삭제)
 //
 // ★ 이번 업데이트: 팀원이 준 실제 아이콘/색상 파일들을 반영.
 //   - Logo 3종 (기존 2종 -> 3종으로 늘어남)
 //   - Photo Color 2종 (컬러/흑백) - 실제 아이콘 이미지 사용
-//   - Special Frame 5종 - 실제 패턴 이미지를 border 영역에 그대로 그림
+//   - Special Frame 6종 (mint_black_star 삭제, halloween/hello 추가) -
+//     실제 패턴 이미지를 border 영역에 그대로 그림. halloween/hello는
+//     완성본이 PNG가 아니라 SVG(패턴 fill + 구멍 4개짜리 path)로 왔는데,
+//     다른 항목들과 똑같이 <img src="....svg">로 로드해서 Canvas에
+//     drawImage하면 되므로 로직 변경 없이 그대로 섞어 쓸 수 있다.
 //   - Frame 색상 5종 - 실제 파일에서 뽑아낸 정확한 색상값 사용,
 //     그중 green(신구대)은 로고가 이미 박혀있는 특수 케이스라 별도 처리
 //
@@ -45,9 +49,10 @@ const PHOTO_COLOR_MODES = [
 const ASSET_SPECIAL_FRAMES = [
   { id: "navy_star", src: "assets/special_frames/navy_star.png" },
   { id: "marble", src: "assets/special_frames/marble.png" },
-  { id: "mint_black_star", src: "assets/special_frames/mint_black_star.png" },
   { id: "mint_white_star", src: "assets/special_frames/mint_white_star.png" },
   { id: "black_white_star", src: "assets/special_frames/black_white_star.png" },
+  { id: "halloween", src: "assets/special_frames/halloween.svg" },
+  { id: "hello", src: "assets/special_frames/hello.svg" },
 ];
 
 // color: 실제 파일에서 추출한 평균 색상값. green은 로고가 중앙에 박혀있는
@@ -63,8 +68,8 @@ const ASSET_FRAME_COLORS = [
 // "흰색 프레임 + 로고1 + 특별프레임 없음" 조합은 팀원이 완성본으로 준 실제
 // 합성 이미지를 그대로 사용 (제일 정확함). 그 외 조합은 아래에서 실시간으로
 // 레이어를 겹쳐서 합성한다.
-// ★ Frame 5색상 × 로고 3종(15개) + Special Frame 5종 × 로고 3종(15개) +
-//   신구대(1개) = 총 31개 조합이 이제 전부 실제 완성본으로 커버됨.
+// ★ Frame 5색상 × 로고 3종(15개) + Special Frame 6종 × 로고 3종(18개) +
+//   신구대(1개) = 총 34개 조합이 이제 전부 실제 완성본으로 커버됨.
 //   실시간 레이어 합성(drawComposedOverlay)은 혹시 이미지 로드가 실패할
 //   때만 쓰이는 최후 폴백으로 남겨둠.
 const REAL_FULL_OVERLAY = {
@@ -88,10 +93,6 @@ const REAL_FULL_OVERLAY = {
   "white_logo2_mint_white_star": "assets/frames_full/mint_white_star_logo2.png",
   "white_logo3_mint_white_star": "assets/frames_full/mint_white_star_logo3.png",
 
-  "white_logo1_mint_black_star": "assets/frames_full/mint_black_star_logo1.png",
-  "white_logo2_mint_black_star": "assets/frames_full/mint_black_star_logo2.png",
-  "white_logo3_mint_black_star": "assets/frames_full/mint_black_star_logo3.png",
-
   "white_logo1_navy_star": "assets/frames_full/navy_star_logo1.png",
   "white_logo2_navy_star": "assets/frames_full/navy_star_logo2.png",
   "white_logo3_navy_star": "assets/frames_full/navy_star_logo3.png",
@@ -103,6 +104,14 @@ const REAL_FULL_OVERLAY = {
   "white_logo1_black_white_star": "assets/frames_full/black_white_star_logo1.png",
   "white_logo2_black_white_star": "assets/frames_full/black_white_star_logo2.png",
   "white_logo3_black_white_star": "assets/frames_full/black_white_star_logo3.png",
+
+  "white_logo1_halloween": "assets/frames_full/halloween_logo1.svg",
+  "white_logo2_halloween": "assets/frames_full/halloween_logo2.svg",
+  "white_logo3_halloween": "assets/frames_full/halloween_logo3.svg",
+
+  "white_logo1_hello": "assets/frames_full/hello_logo1.svg",
+  "white_logo2_hello": "assets/frames_full/hello_logo2.svg",
+  "white_logo3_hello": "assets/frames_full/hello_logo3.svg",
 };
 
 // ★ 특별프레임을 선택했을 때, 실제 완성본이 위 REAL_FULL_OVERLAY 키에서

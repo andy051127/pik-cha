@@ -1,4 +1,6 @@
 <!-- 웨이팅리스트에서 발급받은 순번을 입력받는 화면 (구 Personal_Info).
+     ★ 새 디자인(Sub_사진 촬영 시작.svg → 실제로는 "순번 입력" 화면)을 bg.svg 배경으로 쓰고,
+     입력창/BACK/NEXT만 실제 동작하는 요소로 얹는다.
      순번 조회가 성공해야 NEXT가 활성화된다(script.js에서 서버 검증). -->
 <!DOCTYPE html>
 <html lang="ko">
@@ -8,22 +10,17 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="stage">
-    <div class="content">
-      <p class="title">발급받은 순번을 입력해주세요.</p>
+  <div class="viewport">
+    <div class="stage">
+      <img class="stage-bg" src="bg.svg" alt="">
 
       <!-- 순번 입력: 숫자만 -->
-      <div class="field">
-        <label for="ticketInput" class="field-label">순번 [Ticket Number]</label>
-        <input type="text" id="ticketInput" class="pill-input" placeholder="예: 12" inputmode="numeric" maxlength="6">
-      </div>
+      <input type="text" id="ticketInput" class="pill-input" placeholder="예: 12" inputmode="numeric" maxlength="6">
 
       <!-- 조회 실패(등록되지 않은 순번 등) 메시지 표시용 -->
       <p class="error-msg" id="errorMsg"></p>
-    </div>
 
-    <!-- NEXT는 순번 조회가 성공했을 때만 클릭 가능(disabled 속성은 script.js가 토글) -->
-    <div class="nav">
+      <!-- NEXT는 순번 조회가 성공했을 때만 클릭 가능(disabled 속성은 script.js가 토글) -->
       <button class="nav-btn back-btn" id="backBtn" aria-label="이전">
         <img src="Elements/back.svg" alt="BACK">
       </button>

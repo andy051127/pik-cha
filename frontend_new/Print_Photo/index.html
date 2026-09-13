@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- 인쇄 대기 + QR 표시 화면 (흐름의 마지막 단계).
+<!-- 인쇄 대기 + QR 표시 화면 (흐름의 마지막 단계). ★ 새 디자인(Sub_사진 인쇄.svg) 적용.
      Select_Frame이 /api/fourcut/create 호출 후 sessionStorage("pikcha_result")에
      저장해둔 결과(QR base64 등)를 읽어서 보여준다.
      30초 카운트다운 후 자동으로 Main으로 돌아가 다음 손님을 받는다. -->
@@ -10,8 +10,10 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="stage">
-    <div class="frame">
+  <div class="viewport">
+    <div class="stage">
+      <div class="topbar"></div>
+
       <p class="title">사진을 출력 중이니 잠시만 기다려주세요!</p>
 
       <div class="qr-wrap">

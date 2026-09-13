@@ -7,93 +7,105 @@
 html, body {
   width: 100%;
   height: 100%;
-  background: #fff;
 }
 
-.stage {
+.viewport {
   width: 100vw;
   height: 100vh;
+  background: #fff;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 32px 60px;
-  gap: 24px;
+  justify-content: center;
 }
 
-.title {
-  font-size: clamp(18px, 2.4vw, 28px);
-  font-weight: 600;
-  color: #181818;
-  text-align: center;
+/* 디자인 원본 비율(1342:877)을 유지한 스테이지. 안의 모든 요소는 %/cqw로
+   배치되어 화면 크기가 바뀌어도 항상 같은 상대 위치를 유지한다. */
+.stage {
+  position: relative;
+  width: min(100vw, 100vh * 1342 / 877);
+  height: min(100vh, 100vw * 877 / 1342);
+  container-type: size;
+  font-family: inherit;
 }
 
-.layout {
-  flex: 1;
+.topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  display: flex;
-  gap: 60px;
-  align-items: center;
-  justify-content: center;
-  min-height: 0;
+  height: 7.184%;
+  background: #5fa384;
 }
 
-/* ── 왼쪽: 미리보기 ── */
+/* ── 왼쪽: 미리보기 (Review_Photos 보드와 동일한 자리/스타일) ── */
 .preview-wrap {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  left: 5.74%;
+  top: 15.85%;
+  width: 31.97%;
+  height: 71.38%;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  border-radius: 2px;
 }
 
 #previewCanvas {
+  width: 100%;
   height: 100%;
-  max-height: 640px;
-  width: auto;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
-  border-radius: 4px;
+  display: block;
 }
 
 /* ── 오른쪽: 옵션 목록 ── */
 .options {
+  position: absolute;
+  left: 45.08%;
+  top: 11.5%;
+  width: 51%;
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  max-width: 480px;
+  gap: 2.2cqw;
+}
+
+.title {
+  font-size: 2.05cqw;
+  font-weight: 600;
+  color: #5fa384;
+  margin-bottom: 0.6cqw;
 }
 
 .option-label {
-  font-size: 18px;
+  font-size: 1.55cqw;
   font-weight: 600;
-  color: #181818;
-  margin-bottom: 12px;
+  color: #5fa384;
+  margin-bottom: 0.9cqw;
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 0.75cqw;
 }
 
 .option-hint {
-  font-size: 12px;
+  font-size: 0.95cqw;
   font-weight: 400;
-  color: #999;
+  color: #a9a9a9;
 }
 
 .swatch-row {
   display: flex;
-  gap: 14px;
+  gap: 1.9cqw;
   flex-wrap: wrap;
 }
 
 .swatch {
-  width: 56px;
-  height: 56px;
+  width: 6.56cqw;
+  height: 6.56cqw;
   border-radius: 50%;
   cursor: pointer;
-  border: 3px solid transparent;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 /* 실제 아이콘 이미지를 원형 안에 꽉 채워서 표시 */
@@ -109,52 +121,66 @@ html, body {
   transform: scale(1.06);
 }
 
+/* ★ border 대신 box-shadow로 링을 그린다: border는 두께만큼 항상 공간을
+   차지해서(선택 안 된 상태엔 투명 border) 원형 안쪽 이미지와 바깥 사이에
+   흰 배경이 비치는 틈이 생겼었다. box-shadow는 여백을 차지하지 않아
+   평소엔 완전히 안 보이고, 선택됐을 때만 깔끔하게 겹쳐 그려진다. */
 .swatch.selected {
-  border-color: #ff4f81;
+  box-shadow: 0 0 0 3px #ff4f81, 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* 흰색 프레임 스와치는 테두리가 안 보이니 기본 회색 링 추가 */
+/* 흰색 프레임 스와치는 배경과 구분이 안 되니 얇은 회색 링을 기본으로 추가 */
 .swatch.outline {
-  border-color: #ddd;
+  box-shadow: 0 0 0 1.5px #ddd, 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 .swatch.outline.selected {
-  border-color: #ff4f81;
+  box-shadow: 0 0 0 3px #ff4f81, 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* ── 하단 ── */
-.footer {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .footer-hint {
-  font-size: 14px;
-  color: #999;
+  position: absolute;
+  left: 29.8%;
+  top: 93.5%;
+  font-size: 1.15cqw;
+  color: #a9a9a9;
 }
 
 .next-btn {
-  padding: 14px 40px;
+  position: absolute;
+  left: 84.39%;
+  top: 90.94%;
+  width: 12.37%;
+  height: 5.36%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5cqw;
   font-family: inherit;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  background: #181818;
-  color: #fff;
-  border: none;
-  border-radius: 24px;
+  font-size: 1.55cqw;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  background: none;
+  color: #181818;
+  border: 1.5px solid #181818;
+  border-radius: 9999px;
   cursor: pointer;
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
+.next-arrow {
+  width: 0.85cqw;
+  height: 1cqw;
+  fill: #181818;
+}
+
 .next-btn:hover:not(:disabled) {
-  opacity: 0.85;
-  transform: scale(1.02);
+  opacity: 0.75;
+  transform: scale(1.03);
 }
 
 .next-btn:disabled {
-  background: #ccc;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 

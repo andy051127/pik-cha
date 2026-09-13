@@ -14,19 +14,20 @@ const MAX_SELECT = 4;
 const TOTAL_OPTIONS = 8;
 
 // ★ 우측 썸네일 8칸 = 가로 4칸 x 세로 2칸 (4x2 그리드).
-//   각 칸은 프레임 슬롯과 동일한 세로 비율 175.5 : 241.8 (W=170 -> H=234.22).
+//   좌표는 새 디자인(Sub_사진 선택_pik-cha.svg)의 그리드 그대로.
+//   각 칸은 프레임 슬롯과 동일한 세로 비율 175.5 : 241.8.
 const OPTION_POSITIONS = [
-  { x: 566, y: 205 },
-  { x: 754, y: 205 },
-  { x: 942, y: 205 },
-  { x: 1130, y: 205 },
-  { x: 566, y: 461.44 },
-  { x: 754, y: 461.44 },
-  { x: 942, y: 461.44 },
-  { x: 1130, y: 461.44 },
+  { x: 556, y: 233 },
+  { x: 747, y: 233 },
+  { x: 938, y: 233 },
+  { x: 1129, y: 233 },
+  { x: 556, y: 483 },
+  { x: 747, y: 483 },
+  { x: 938, y: 483 },
+  { x: 1129, y: 483 },
 ];
-const OPTION_W = 170;
-const OPTION_H = 234.22;
+const OPTION_W = 175.5;
+const OPTION_H = 241.8;
 
 const photoOptionsGroup = document.getElementById("photoOptions");
 const frameSlots = [...document.querySelectorAll(".frame-slot")];

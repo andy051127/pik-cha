@@ -11,8 +11,7 @@ body {
   overflow: hidden;
 }
 
-.stage {
-  position: relative;
+.viewport {
   width: 100vw;
   height: 100vh;
   background: #fff;
@@ -21,69 +20,66 @@ body {
   justify-content: center;
 }
 
-/* 제목 + 입력 필드 2개를 세로로 쌓는 가운데 콘텐츠 블록 */
-.content {
-  width: min(640px, 80vw);
-  display: flex;
-  flex-direction: column;
-  gap: 6vh;
+.stage {
+  position: relative;
+  width: min(100vw, 100vh * 1342 / 877);
+  height: min(100vh, 100vw * 877 / 1342);
+  container-type: size;
+  font-family: inherit;
 }
 
-.title {
-  font-size: clamp(18px, 2.4vw, 30px);
-  font-weight: 600;
-  color: #101010;
-}
-
-/* 라벨 + 입력창 한 쌍 */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2vh;
-}
-
-.field-label {
-  font-size: clamp(14px, 1.6vw, 20px);
-  color: #101010;
-  font-weight: 500;
-}
-
-/* 둥근 알약(pill) 모양 입력창 */
-.pill-input {
+.stage-bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  padding: 1.6vh 2vw;
+  height: 100%;
+  display: block;
+}
+
+/* 둥근 알약(pill) 모양 입력창: 디자인의 "순번 [Number]" 라벨 바로 아래 */
+.pill-input {
+  position: absolute;
+  left: 15.2%;
+  top: 46.75%;
+  width: 35.77%;
+  height: 7.3%;
+  padding: 0 2.2%;
   border-radius: 9999px;
-  border: 1.5px solid #d8d8d8;
-  background: #f4f4f4;
-  color: #101010;
-  font-size: clamp(14px, 1.7vw, 20px);
+  border: 1.5px solid #5fa384;
+  background: #f4faf7;
+  color: #181818;
+  font-size: 2.1cqw;
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .pill-input::placeholder {
-  color: #9a9a9a;
+  color: #9ab8ac;
 }
 
-/* 포커스 시 테두리를 진하게, 배경을 흰색으로 바꿔 입력 중임을 표시 */
 .pill-input:focus {
-  border-color: #101010;
+  border-color: #3f7d61;
   background: #fff;
 }
 
-/* 화면 하단에 고정되어 좌우로 벌어지는 BACK/NEXT 영역 */
-.nav {
+/* 순번 조회 실패("등록되지 않은 순번" 등) 메시지 */
+.error-msg {
   position: absolute;
-  bottom: 6vh;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 6vw;
+  left: 15.2%;
+  top: 56%;
+  width: 50%;
+  min-height: 1.4em;
+  font-size: 1.15cqw;
+  color: #d64545;
 }
 
+/* BACK / NEXT */
 .nav-btn {
+  position: absolute;
+  top: 89.339%;
+  width: 12.369%;
+  height: 5.359%;
   background: none;
   border: none;
   padding: 0;
@@ -93,12 +89,20 @@ body {
 
 .nav-btn img {
   display: block;
-  width: clamp(120px, 12vw, 180px);
-  height: auto;
+  width: 100%;
+  height: 100%;
+}
+
+.back-btn {
+  left: 4.21%;
+}
+
+.next-btn {
+  left: 84.389%;
 }
 
 .nav-btn:hover {
-  transform: scale(1.05);
+  transform: scale(1.03);
   opacity: 0.8;
 }
 
@@ -108,13 +112,6 @@ body {
 
 /* 순번이 아직 입력되지 않았거나 확인 중일 때 NEXT를 반투명 + 클릭 불가로 만든다 */
 .next-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   pointer-events: none;
-}
-
-/* 순번 조회 실패("등록되지 않은 순번" 등) 메시지 */
-.error-msg {
-  min-height: 1.4em;
-  font-size: clamp(13px, 1.4vw, 16px);
-  color: #d64545;
 }
