@@ -1,0 +1,54 @@
+<!-- 모바일 웨이팅 등록 폼 (손님이 QR 스캔 후 보는 화면).
+     HTML/CSS 스캐폴드 - 제출 로직/유효성 검사는 아직 안 붙임. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>웨이팅 등록</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <p class="brand">PHOTO<br>BOOTH</p>
+    <p class="subtitle">WAITING LIST</p>
+    <img class="logo" src="../assets/logo-wordmark-white.png" alt="Pik-Cha!">
+  </header>
+
+  <main class="content">
+    <div class="field">
+      <label for="department">학과</label>
+      <select id="department" class="field-select">
+        <option>컴퓨터소프트웨어과</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="studentId">학번</label>
+      <input id="studentId" type="text" placeholder="학번을 입력하세요">
+    </div>
+
+    <div class="field">
+      <label for="name">이름</label>
+      <input id="name" type="text" placeholder="이름을 입력하세요">
+    </div>
+
+    <div class="field">
+      <label for="phone">전화번호</label>
+      <input id="phone" type="tel" placeholder="전화번호를 입력하세요">
+    </div>
+
+    <div class="field">
+      <label>인원수</label>
+      <div class="stepper">
+        <button type="button" class="stepper-btn stepper-minus" aria-label="인원 줄이기">-</button>
+        <span class="stepper-value"><strong>2</strong> 명</span>
+        <button type="button" class="stepper-btn stepper-plus" aria-label="인원 늘리기">+</button>
+      </div>
+      <p class="hint">최대 8명까지 촬영 가능합니다</p>
+    </div>
+
+    <button type="button" class="submit-btn" disabled>웨이팅 등록하기</button>
+  </main>
+</body>
+</html>

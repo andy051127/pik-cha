@@ -1,0 +1,55 @@
+<!-- 관리자 대시보드 허브 화면. 3개 카드(Dashboard/Waiting List/Print Status)로
+     각 관리 화면 진입 - 지금은 HTML/CSS 스캐폴드만이라 실데이터/링크는 나중에 연결. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Waiting List Admin</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar">
+    <img class="logo" src="../assets/logo-wordmark-green.png" alt="Pik-Cha!">
+    <div class="topbar-right">
+      <a href="../WaitingList_AdminQRPage/index.html" class="qr-link">QR 페이지</a>
+      <div class="admin-pill">
+        <span class="admin-emoji" aria-hidden="true">😃</span>
+        <span>관리자</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <p class="hero-text">PHOTOBOOTH</p>
+    <p class="hero-text">PHOTOBOOTH</p>
+    <p class="hero-text">PHOTOBOOTH</p>
+    <img class="hero-bubble" src="../assets/logo-bubble.png" alt="Pik-Cha!">
+  </div>
+
+  <div class="cards">
+    <a class="card card-filled" href="#">
+      <div class="card-label">01 | Dashboard</div>
+      <div class="card-body">
+        <p class="card-number">4팀</p>
+        <p class="card-caption">현재 대기중</p>
+      </div>
+    </a>
+
+    <a class="card" href="#">
+      <div class="card-label">02 | Waiting List</div>
+      <div class="card-body">
+        <p class="card-title">웨이팅리스트 관리</p>
+        <p class="card-caption card-caption-dark">대기팀 순번 호출 · 취소 처리</p>
+      </div>
+    </a>
+
+    <a class="card" href="#">
+      <div class="card-label">03 | Print Status</div>
+      <div class="card-body">
+        <p class="card-title">인화 상태 관리</p>
+        <p class="card-caption card-caption-dark">완료 처리 · 호출</p>
+      </div>
+    </a>
+  </div>
+</body>
+</html>

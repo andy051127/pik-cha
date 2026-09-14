@@ -1,0 +1,169 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Compact", "Pretendard", "Malgun Gothic", sans-serif;
+  color: #101010;
+  background: #fff;
+}
+
+.page {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── 좌측 QR/현황 패널 ─────────────────────────────────── */
+.panel {
+  flex: 0 0 clamp(280px, 28vw, 520px);
+  background: #5fa384;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(32px, 5vw, 64px) clamp(24px, 4vw, 48px);
+}
+
+.panel-logo {
+  width: clamp(140px, 15vw, 220px);
+  height: auto;
+}
+
+.panel-message {
+  font-size: clamp(16px, 1.6vw, 24px);
+  line-height: 1.5;
+  text-align: center;
+  margin: auto 0;
+}
+
+.panel-count {
+  text-align: center;
+}
+
+.panel-count-label {
+  font-size: clamp(16px, 1.6vw, 24px);
+  margin-bottom: 12px;
+}
+
+.panel-count-number {
+  font-size: clamp(64px, 9vw, 128px);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.panel-count-unit {
+  font-size: clamp(24px, 3vw, 48px);
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+/* ── 우측 등록 폼 ─────────────────────────────────────── */
+.form-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 3vw, 36px);
+  padding: clamp(32px, 5vw, 64px) clamp(32px, 6vw, 96px);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.field input,
+.field-select {
+  border: none;
+  border-bottom: 2px solid #5fa384;
+  padding: 10px 4px;
+  font-size: clamp(16px, 1.4vw, 20px);
+  font-family: inherit;
+  color: #101010;
+  background: transparent;
+  outline: none;
+}
+
+.field input::placeholder {
+  color: #b1b1b1;
+}
+
+.field-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #5fa384 50%), linear-gradient(135deg, #5fa384 50%, transparent 50%);
+  background-position: calc(100% - 6px) 55%, calc(100% - 1px) 55%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid #5fa384;
+  padding: clamp(12px, 1.6vw, 20px);
+}
+
+.stepper-btn {
+  width: clamp(46px, 5vw, 70px);
+  height: clamp(46px, 5vw, 70px);
+  border: none;
+  font-size: clamp(24px, 2.4vw, 32px);
+  cursor: pointer;
+}
+
+.stepper-minus {
+  background: #c3dac1;
+  color: #101010;
+}
+
+.stepper-plus {
+  background: #5fa384;
+  color: #fff;
+}
+
+.stepper-value {
+  font-size: clamp(24px, 2.6vw, 36px);
+  font-weight: 800;
+}
+
+.hint {
+  font-size: 14px;
+  color: #b1b1b1;
+}
+
+.submit-btn {
+  margin-top: 8px;
+  padding: clamp(16px, 2vw, 24px);
+  border: none;
+  border-radius: 50px;
+  font-size: clamp(18px, 1.8vw, 28px);
+  font-family: inherit;
+  cursor: pointer;
+  background: #dedede;
+  color: #878787;
+}
+
+.submit-btn:not(:disabled) {
+  background: #5fa384;
+  color: #fff;
+}
+
+@media (max-width: 800px) {
+  .page {
+    flex-direction: column;
+  }
+  .panel {
+    flex: none;
+  }
+}

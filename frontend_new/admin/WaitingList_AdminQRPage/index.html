@@ -1,0 +1,61 @@
+<!-- 태블릿(웨이팅 디스플레이)용 QR/현황 패널 + 옆에 놓이는 와이드 등록폼.
+     HTML/CSS 스캐폴드 - 실데이터(대기팀 수 등)는 나중에 API로 채워넣을 자리. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Waiting List - QR</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page">
+    <aside class="panel">
+      <img class="panel-logo" src="../assets/logo-wordmark-white.png" alt="Pik-Cha!">
+      <p class="panel-message">
+        QR을 찍고 웨이팅을 등록하면<br>
+        입장과 인화 상태를 알려드려요
+      </p>
+      <div class="panel-count">
+        <p class="panel-count-label">현재 대기</p>
+        <p class="panel-count-number">00<span class="panel-count-unit">팀</span></p>
+      </div>
+    </aside>
+
+    <main class="form-area">
+      <div class="field">
+        <label for="department">학과</label>
+        <select id="department" class="field-select">
+          <option>컴퓨터소프트웨어과</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="studentId">학번</label>
+        <input id="studentId" type="text" placeholder="학번을 입력하세요">
+      </div>
+
+      <div class="field">
+        <label for="name">이름</label>
+        <input id="name" type="text" placeholder="이름을 입력하세요">
+      </div>
+
+      <div class="field">
+        <label for="phone">전화번호</label>
+        <input id="phone" type="tel" placeholder="전화번호를 입력하세요">
+      </div>
+
+      <div class="field">
+        <label>인원수</label>
+        <div class="stepper">
+          <button type="button" class="stepper-btn stepper-minus" aria-label="인원 줄이기">-</button>
+          <span class="stepper-value"><strong>2</strong> 명</span>
+          <button type="button" class="stepper-btn stepper-plus" aria-label="인원 늘리기">+</button>
+        </div>
+        <p class="hint">최대 8명까지 촬영 가능합니다</p>
+      </div>
+
+      <button type="button" class="submit-btn" disabled>웨이팅 등록하기</button>
+    </main>
+  </div>
+</body>
+</html>

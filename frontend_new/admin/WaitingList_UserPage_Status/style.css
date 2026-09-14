@@ -1,0 +1,106 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Compact", "Pretendard", "Malgun Gothic", sans-serif;
+  color: #101010;
+  background: #fff;
+}
+
+.header {
+  position: relative;
+  background: #5fa384;
+  color: #fff;
+  padding: 28px 18px 24px;
+}
+
+.brand {
+  font-size: clamp(24px, 8vw, 32px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin-top: 8px;
+  font-size: clamp(20px, 7vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.logo {
+  position: absolute;
+  top: 28px;
+  right: 18px;
+  width: 70px;
+  height: auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 28px 18px 40px;
+}
+
+.card {
+  border: 2px solid #5fa384;
+}
+
+.card-label {
+  background: #5fa384;
+  color: #fff;
+  font-size: 16px;
+  padding: 6px 16px;
+}
+
+.card-body {
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.ticket-number {
+  font-size: 48px;
+  font-weight: 800;
+}
+
+.ticket-number strong {
+  font-size: 64px;
+}
+
+.ticket-detail {
+  margin-top: 12px;
+  font-size: 20px;
+}
+
+.ticket-wait {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #b1b1b1;
+}
+
+.print-status {
+  font-size: 20px;
+}
+
+.refresh-hint {
+  text-align: center;
+  font-size: 14px;
+  color: #b1b1b1;
+  line-height: 1.6;
+}
+
+.cancel-btn {
+  padding: 20px;
+  border: none;
+  border-radius: 50px;
+  font-size: 20px;
+  font-family: inherit;
+  cursor: pointer;
+  background: #5fa384;
+  color: #fff;
+}

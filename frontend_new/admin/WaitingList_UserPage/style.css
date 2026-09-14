@@ -1,0 +1,138 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Compact", "Pretendard", "Malgun Gothic", sans-serif;
+  color: #101010;
+  background: #fff;
+}
+
+.header {
+  position: relative;
+  background: #5fa384;
+  color: #fff;
+  padding: 28px 18px 24px;
+}
+
+.brand {
+  font-size: clamp(24px, 8vw, 32px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin-top: 8px;
+  font-size: clamp(20px, 7vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.logo {
+  position: absolute;
+  top: 28px;
+  right: 18px;
+  width: 70px;
+  height: auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 5vw, 32px);
+  padding: 28px 18px 40px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.field input,
+.field-select {
+  border: none;
+  border-bottom: 2px solid #5fa384;
+  padding: 10px 2px;
+  font-size: 20px;
+  font-family: inherit;
+  color: #101010;
+  background: transparent;
+  outline: none;
+  width: 100%;
+}
+
+.field input::placeholder {
+  color: #b1b1b1;
+}
+
+.field-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #5fa384 50%), linear-gradient(135deg, #5fa384 50%, transparent 50%);
+  background-position: calc(100% - 6px) 55%, calc(100% - 1px) 55%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid #5fa384;
+  padding: 16px;
+}
+
+.stepper-btn {
+  width: 46px;
+  height: 46px;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.stepper-minus {
+  background: #c3dac1;
+  color: #101010;
+}
+
+.stepper-plus {
+  background: #5fa384;
+  color: #fff;
+}
+
+.stepper-value {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.hint {
+  font-size: 14px;
+  color: #b1b1b1;
+}
+
+.submit-btn {
+  margin-top: 8px;
+  padding: 20px;
+  border: none;
+  border-radius: 50px;
+  font-size: 20px;
+  font-family: inherit;
+  cursor: pointer;
+  background: #dedede;
+  color: #878787;
+}
+
+.submit-btn:not(:disabled) {
+  background: #5fa384;
+  color: #fff;
+}
