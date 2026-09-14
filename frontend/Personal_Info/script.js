@@ -1,48 +1,85 @@
-// 개인정보 입력 화면 로직:
-// 1) 전화번호 입력 중 자동으로 010-XXXX-XXXX 형태의 하이픈을 붙여준다.
-// 2) 이름이 1자 이상이고 전화번호 형식이 완성되어야 NEXT를 누를 수 있다.
+// 순번 입력 화면 로직 (구 Personal_Info 대체):
+// 1) 숫자만 입력받고, 최소 1자리 이상이면 NEXT를 누를 수 있게 한다.
+// 2) NEXT를 누르면 로컬 백엔드(/api/waitlist/start-session)에 순번을 보내서
+//    서버(DynamoDB 웨이팅리스트)에 실제 등록된 번호인지 확인한다.
+// 3) 성공하면 학과/학번/이름/전화번호를 돌려받아 sessionStorage에 저장한다.
+//    이름/전화번호는 기존 pikcha_personal_info 키/형태 그대로 써서 Select_Frame이
+//    수정 없이 그대로 읽어 쓸 수 있게 한다.
+// 4) 실패(없는 순번/이미 종료된 순번)하면 에러 메시지를 보여주고 다시 시도하게 한다.
 
-const nameInput = document.getElementById("nameInput");
-const phoneInput = document.getElementById("phoneInput");
+const API_BASE = "http://localhost:8000";
+
+const ticketInput = document.getElementById("ticketInput");
+const errorMsg = document.getElementById("errorMsg");
 const backBtn = document.getElementById("backBtn");
 const nextBtn = document.getElementById("nextBtn");
 
-// 완성된 전화번호 형식(010-XXXX-XXXX)인지 검사하는 정규식
-const PHONE_PATTERN = /^010-\d{4}-\d{4}$/;
-
-// 입력값에서 숫자만 추출해 010-XXXX-XXXX 형태로 하이픈을 끼워 넣는다.
-function formatPhone(value) {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-}
-
-// 이름/전화번호가 둘 다 유효한지 확인해서 NEXT 버튼 활성화 여부를 갱신한다.
 function validate() {
-  const nameOk = nameInput.value.trim().length > 0;
-  const phoneOk = PHONE_PATTERN.test(phoneInput.value);
-  nextBtn.disabled = !(nameOk && phoneOk);
+  nextBtn.disabled = ticketInput.value.trim().length === 0;
 }
 
-// 전화번호 입력할 때마다 하이픈을 자동으로 다시 맞추고 유효성을 재검사
-phoneInput.addEventListener("input", () => {
-  phoneInput.value = formatPhone(phoneInput.value);
+// 숫자만 남기고, 입력이 바뀌면 이전 에러 메시지는 지운다.
+ticketInput.addEventListener("input", () => {
+  ticketInput.value = ticketInput.value.replace(/\D/g, "");
+  errorMsg.textContent = "";
   validate();
 });
 
-// 이름 입력할 때마다 유효성을 재검사
-nameInput.addEventListener("input", validate);
-
-// 이전 화면(인화 수량 선택)으로 이동
 backBtn.addEventListener("click", () => {
   window.location.href = "../Number_of_Prints/index.html";
 });
 
-// 다음 화면(촬영 카운트다운)으로 이동. disabled 상태면 아무 동작도 하지 않는다.
-nextBtn.addEventListener("click", () => {
+nextBtn.addEventListener("click", async () => {
   if (nextBtn.disabled) return;
-  window.location.href = "../CountDown/index.html";
+
+  const ticketNumber = parseInt(ticketInput.value, 10);
+  if (!Number.isInteger(ticketNumber)) {
+    errorMsg.textContent = "순번을 숫자로 입력해주세요.";
+    return;
+  }
+
+  nextBtn.disabled = true;
+  errorMsg.textContent = "확인 중...";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/waitlist/start-session`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ticket_number: ticketNumber }),
+    });
+    const result = await res.json();
+
+    if (!res.ok) {
+      errorMsg.textContent = result.detail || "순번 확인에 실패했습니다.";
+      nextBtn.disabled = false;
+      return;
+    }
+
+    // ★ Select_Frame이 그대로 쓸 수 있도록 기존 키/형태(name, phoneNumber) 유지
+    sessionStorage.setItem(
+      "pikcha_personal_info",
+      JSON.stringify({
+        name: result.name || "",
+        phoneNumber: result.phone_number || "",
+      })
+    );
+
+    // 순번 자체는 촬영 시작(/api/four-cut/start) 때 필요해서 따로 저장
+    sessionStorage.setItem(
+      "pikcha_ticket_info",
+      JSON.stringify({
+        ticketNumber: result.ticket_number,
+        department: result.department || "",
+        studentId: result.student_id || "",
+      })
+    );
+
+    window.location.href = "../CountDown/index.html";
+  } catch (err) {
+    console.error("순번 확인 요청 실패 (백엔드 서버가 켜져 있는지 확인):", err);
+    errorMsg.textContent = "서버에 연결할 수 없습니다.";
+    nextBtn.disabled = false;
+  }
 });
 
 validate(); // 페이지가 막 열렸을 때(입력값 없음)의 초기 상태를 맞춘다.

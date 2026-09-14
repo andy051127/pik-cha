@@ -1,60 +1,71 @@
-// 촬영본 확인/선택 화면 로직:
-// - Take_a_Picture가 sessionStorage에 저장한 촬영본 8장을 오른쪽 그리드에 그린다.
-// - 사진을 클릭한 순서대로 selection 배열에 쌓이고, 그 순서대로 왼쪽 보드 4칸이 채워진다.
-// - 이미 선택한 사진을 다시 클릭하면 선택이 취소되고 뒤 순서들이 앞으로 당겨진다.
-// - 정확히 4장을 골라야 NEXT를 누를 수 있다.
+// 촬영본 확인/선택 화면 로직 (★ 서버 연동 버전으로 수정).
+//
+// ★ 바뀐 점 (기존 버전 대비):
+//   - sessionStorage("pikcha_photos")의 dataURL 배열 대신, 서버
+//     GET /api/images 를 호출해서 실제 촬영된 사진 목록(id)을 받아온다.
+//     화면에 표시할 때는 <image href="/api/images/{id}">로 서버에서 직접 불러온다.
+//   - NEXT를 누르면 선택한 "사진 id"들을 sessionStorage("pikcha_selected_photos")에
+//     저장하고 Select_Frame 화면으로 이동한다 (기존엔 TODO로 비어있던 부분).
+//   - 그 외 선택/배지/보드 미리보기 로직은 원본 그대로 유지.
 
+const API_BASE = "http://localhost:8000";
 const SVG_NS = "http://www.w3.org/2000/svg";
 const MAX_SELECT = 4;
 const TOTAL_OPTIONS = 8;
 
+// ★ 우측 썸네일 8칸 = 가로 4칸 x 세로 2칸 (4x2 그리드).
+//   좌표는 새 디자인(Sub_사진 선택_pik-cha.svg)의 그리드 그대로.
+//   각 칸은 프레임 슬롯과 동일한 세로 비율 175.5 : 241.8.
 const OPTION_POSITIONS = [
-  { x: 672, y: 161 },
-  { x: 672, y: 306 },
-  { x: 672, y: 451 },
-  { x: 672, y: 596 },
-  { x: 892, y: 161 },
-  { x: 892, y: 306 },
-  { x: 892, y: 451 },
-  { x: 892, y: 596 },
+  { x: 556, y: 233 },
+  { x: 747, y: 233 },
+  { x: 938, y: 233 },
+  { x: 1129, y: 233 },
+  { x: 556, y: 483 },
+  { x: 747, y: 483 },
+  { x: 938, y: 483 },
+  { x: 1129, y: 483 },
 ];
-const OPTION_W = 208;
-const OPTION_H = 133;
+const OPTION_W = 175.5;
+const OPTION_H = 241.8;
 
 const photoOptionsGroup = document.getElementById("photoOptions");
 const frameSlots = [...document.querySelectorAll(".frame-slot")];
 const nextBtn = document.getElementById("nextBtn");
 
-// Take_a_Picture 화면이 저장해 둔 촬영본(dataURL 배열)을 불러온다.
+// ★ 서버에서 받아온 사진 목록. 각 원소는 { id: "20260810_224535", ... } 형태.
 let photos = [];
-try {
-  photos = JSON.parse(sessionStorage.getItem("pikcha_photos") || "[]");
-} catch (err) {
-  photos = [];
-}
-// 촬영본이 없을 때(예: 이 페이지로 바로 진입)도 8칸 레이아웃을 볼 수 있도록
-// null로 채운 빈 자리표시자 8개를 대신 사용한다.
-if (photos.length === 0) {
-  photos = new Array(TOTAL_OPTIONS).fill(null);
-}
 
-// 선택한 순서를 기억하는 배열. 인덱스 0이 1번째로 고른 사진.
+// 선택한 순서를 기억하는 배열. 인덱스 0이 1번째로 고른 사진(id 기준).
 let selection = [];
 
-// SVG 네임스페이스로 태그를 만들고 속성을 한 번에 설정하는 헬퍼
-// (HTML의 document.createElement로는 SVG 요소를 만들 수 없어서 별도 함수가 필요하다)
 function makeSvg(tag, attrs) {
   const el = document.createElementNS(SVG_NS, tag);
   Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
   return el;
 }
 
-// 오른쪽 8칸(사진/배경사각형/선택테두리/순서배지)을 SVG로 동적 생성한다.
-// 사진이 없는 칸은 "사진 없음" 텍스트로 대체한다.
+// ★ 서버에서 촬영본 목록을 불러온다
+async function loadPhotos() {
+  try {
+    const res = await fetch(`${API_BASE}/api/images`);
+    const data = await res.json();
+    photos = data.images || [];
+  } catch (err) {
+    console.error("사진 목록 로드 실패:", err);
+    photos = [];
+  }
+
+  // 8장이 안 채워졌을 때도 8칸 레이아웃은 볼 수 있게 빈 자리로 채움
+  while (photos.length < TOTAL_OPTIONS) {
+    photos.push(null);
+  }
+}
+
 function buildOptions() {
   photoOptionsGroup.innerHTML = "";
 
-  photos.slice(0, TOTAL_OPTIONS).forEach((dataUrl, index) => {
+  photos.slice(0, TOTAL_OPTIONS).forEach((photo, index) => {
     const pos = OPTION_POSITIONS[index];
     const g = makeSvg("g", { class: "photo-option", "data-index": index });
 
@@ -68,7 +79,7 @@ function buildOptions() {
       })
     );
 
-    if (dataUrl) {
+    if (photo) {
       g.appendChild(
         makeSvg("image", {
           class: "option-img",
@@ -76,8 +87,10 @@ function buildOptions() {
           y: pos.y,
           width: OPTION_W,
           height: OPTION_H,
+          // ★ 칸 비율(175.5 : 241.8)이 촬영본과 같으므로 slice로 꽉 채워도
+          //   왜곡·잘림이 생기지 않는다.
           preserveAspectRatio: "xMidYMid slice",
-          href: dataUrl,
+          href: `${API_BASE}/api/images/${photo.id}`,
         })
       );
     } else {
@@ -116,13 +129,13 @@ function buildOptions() {
     badge.appendChild(badgeText);
     g.appendChild(badge);
 
-    g.addEventListener("click", () => toggleSelect(index));
+    if (photo) {
+      g.addEventListener("click", () => toggleSelect(index));
+    }
     photoOptionsGroup.appendChild(g);
   });
 }
 
-// 사진 하나(index)를 선택/선택취소한다.
-// 이미 골랐던 사진이면 배열에서 빼서 취소하고, 아니면 맨 뒤에 추가한다(4장까지만).
 function toggleSelect(index) {
   const existingPos = selection.indexOf(index);
 
@@ -136,10 +149,7 @@ function toggleSelect(index) {
   render();
 }
 
-// selection 배열을 화면에 반영한다: 오른쪽 그리드의 선택 표시/순서 배지,
-// 왼쪽 보드 4칸의 사진 채우기, NEXT 버튼 활성화 여부를 모두 다시 계산한다.
 function render() {
-  // 오른쪽 옵션: 선택 여부 + 몇 번째로 골랐는지 배지 갱신
   photoOptionsGroup.querySelectorAll(".photo-option").forEach((el) => {
     const index = Number(el.dataset.index);
     const order = selection.indexOf(index);
@@ -150,13 +160,12 @@ function render() {
     }
   });
 
-  // 왼쪽 보드 4칸: 선택한 순서대로 채움
   frameSlots.forEach((slot, slotIndex) => {
     const photoIndex = selection[slotIndex];
     const img = slot.querySelector(".frame-img");
 
     if (photoIndex !== undefined && photos[photoIndex]) {
-      img.setAttribute("href", photos[photoIndex]);
+      img.setAttribute("href", `${API_BASE}/api/images/${photos[photoIndex].id}`);
       slot.classList.add("filled");
     } else {
       img.removeAttribute("href");
@@ -168,20 +177,24 @@ function render() {
   nextBtn.classList.toggle("disabled", !isComplete);
 }
 
-// 4장이 모두 선택된 상태에서 NEXT를 누르면, 선택한 사진들을 저장한다.
+// ★ 선택한 사진들의 id를 저장하고 Select_Frame으로 이동
 nextBtn.addEventListener("click", () => {
   if (selection.length !== MAX_SELECT) return;
 
-  const chosenPhotos = selection.map((i) => photos[i]);
+  const chosenPhotoIds = selection.map((i) => photos[i].id);
   try {
-    sessionStorage.setItem("pikcha_selected_photos", JSON.stringify(chosenPhotos));
+    sessionStorage.setItem("pikcha_selected_photos", JSON.stringify(chosenPhotoIds));
   } catch (err) {
     console.warn("선택한 사진을 저장하지 못했습니다:", err);
   }
 
-  // TODO: 다음 화면 경로가 정해지면 여기에 연결
-  console.log("선택한 사진(선택 순서):", chosenPhotos.length);
+  window.location.href = "../Select_Frame/index.html";
 });
 
-buildOptions(); // 오른쪽 8칸을 실제 사진으로 채운다
-render(); // 초기 상태(선택 0장)에 맞춰 화면을 한 번 정리한다
+async function init() {
+  await loadPhotos();
+  buildOptions();
+  render();
+}
+
+init();
