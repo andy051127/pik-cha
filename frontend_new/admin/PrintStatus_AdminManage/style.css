@@ -1,0 +1,134 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Compact", "Pretendard", "Malgun Gothic", sans-serif;
+  color: #101010;
+  background: #f4f6f5;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 28px;
+  background: #fff;
+  border-bottom: 2px solid #5fa384;
+}
+
+.back-link {
+  color: #5fa384;
+  text-decoration: none;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.topbar h1 {
+  flex: 1;
+  font-size: 22px;
+}
+
+.refresh-btn {
+  padding: 8px 18px;
+  border: 1px solid #5fa384;
+  border-radius: 50px;
+  background: #fff;
+  color: #5fa384;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.refresh-btn:hover {
+  background: #5fa384;
+  color: #fff;
+}
+
+.status-msg {
+  padding: 12px 28px 0;
+  font-size: 14px;
+  color: #d64545;
+  min-height: 1.4em;
+}
+
+.print-table {
+  width: calc(100% - 56px);
+  margin: 20px 28px 40px;
+  border-collapse: collapse;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.print-table th,
+.print-table td {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+}
+
+.print-table th {
+  background: #5fa384;
+  color: #fff;
+  font-weight: 500;
+}
+
+.empty-row {
+  text-align: center;
+  color: #b1b1b1;
+  padding: 32px;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 50px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.print-pending { background: #b1b1b1; }
+.print-printed { background: #5fa384; }
+.print-failed { background: #d64545; }
+
+.sms-pill {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 50px;
+  font-size: 12px;
+}
+
+.sms-sent { background: #e6f2ec; color: #5fa384; }
+.sms-unsent { background: #fbeaea; color: #d64545; }
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.action-btn {
+  padding: 6px 12px;
+  border: 1px solid #5fa384;
+  border-radius: 50px;
+  background: #fff;
+  color: #5fa384;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.action-btn:hover {
+  background: #5fa384;
+  color: #fff;
+}
+
+.action-btn:disabled {
+  border-color: #dedede;
+  color: #dedede;
+  cursor: not-allowed;
+  background: #fff;
+}

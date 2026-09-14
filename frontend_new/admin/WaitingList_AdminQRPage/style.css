@@ -159,6 +159,13 @@ html, body {
   color: #fff;
 }
 
+.error-msg {
+  min-height: 1.4em;
+  font-size: 14px;
+  color: #d64545;
+  text-align: center;
+}
+
 @media (max-width: 800px) {
   .page {
     flex-direction: column;

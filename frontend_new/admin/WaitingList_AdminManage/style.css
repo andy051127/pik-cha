@@ -1,0 +1,121 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Compact", "Pretendard", "Malgun Gothic", sans-serif;
+  color: #101010;
+  background: #f4f6f5;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 28px;
+  background: #fff;
+  border-bottom: 2px solid #5fa384;
+}
+
+.back-link {
+  color: #5fa384;
+  text-decoration: none;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.topbar h1 {
+  flex: 1;
+  font-size: 22px;
+}
+
+.refresh-btn {
+  padding: 8px 18px;
+  border: 1px solid #5fa384;
+  border-radius: 50px;
+  background: #fff;
+  color: #5fa384;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.refresh-btn:hover {
+  background: #5fa384;
+  color: #fff;
+}
+
+.status-msg {
+  padding: 12px 28px 0;
+  font-size: 14px;
+  color: #d64545;
+  min-height: 1.4em;
+}
+
+.waitlist-table {
+  width: calc(100% - 56px);
+  margin: 20px 28px 40px;
+  border-collapse: collapse;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.waitlist-table th,
+.waitlist-table td {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.waitlist-table th {
+  background: #5fa384;
+  color: #fff;
+  font-weight: 500;
+}
+
+.empty-row {
+  text-align: center;
+  color: #b1b1b1;
+  padding: 32px;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 50px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.status-waiting { background: #b1b1b1; }
+.status-called { background: #e0a84c; }
+.status-in_session { background: #5fa384; }
+.status-photographed { background: #4c7fe0; }
+.status-completed { background: #3a3a3a; }
+.status-canceled { background: #d64545; }
+
+.cancel-btn {
+  padding: 6px 14px;
+  border: 1px solid #d64545;
+  border-radius: 50px;
+  background: #fff;
+  color: #d64545;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background: #d64545;
+  color: #fff;
+}
+
+.cancel-btn:disabled {
+  border-color: #dedede;
+  color: #dedede;
+  cursor: not-allowed;
+  background: #fff;
+}

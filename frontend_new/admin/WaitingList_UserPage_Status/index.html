@@ -1,5 +1,4 @@
-<!-- 모바일 웨이팅 상태조회 화면 (등록 완료 후 자기 순번/인화상태 확인).
-     HTML/CSS 스캐폴드 - 표시값(순번, 대기팀 수 등)은 예시 값이고 나중에 API로 채움. -->
+<!-- 모바일 웨이팅 상태조회 화면 (등록 완료 후 자기 순번/인화상태 확인). -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -19,25 +18,29 @@
     <section class="card">
       <div class="card-label">입장 순서</div>
       <div class="card-body">
-        <p class="ticket-number"><strong>4</strong> 번</p>
-        <p class="ticket-detail">컴퓨터소프트웨어과 · 이경환 · 4명</p>
-        <p class="ticket-wait">앞에 3팀 · 예상 대기 12분</p>
+        <p class="ticket-number"><strong id="ticketNumber">-</strong> 번</p>
+        <p class="ticket-detail" id="ticketDetail">불러오는 중...</p>
+        <p class="ticket-wait" id="ticketWait"></p>
       </div>
     </section>
 
     <section class="card">
       <div class="card-label">인화 상태</div>
       <div class="card-body">
-        <p class="print-status">촬영 후 사진 인화 상태가 표시됩니다</p>
+        <p class="print-status" id="printStatus">촬영 후 사진 인화 상태가 표시됩니다</p>
       </div>
     </section>
 
+    <p class="error-msg" id="errorMsg"></p>
+
     <p class="refresh-hint">
-      새로고침하여 실시간 순번을 확인해주세요<br>
+      10초마다 자동으로 순번을 새로고침합니다<br>
       이 화면을 닫지 말고 대기해주세요
     </p>
 
-    <button type="button" class="cancel-btn">웨이팅 취소하기</button>
+    <button type="button" class="cancel-btn" id="cancelBtn">웨이팅 취소하기</button>
   </main>
+
+  <script src="script.js"></script>
 </body>
 </html>

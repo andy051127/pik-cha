@@ -1,0 +1,39 @@
+<!-- 웨이팅리스트 관리 화면. 관리자 Basic Auth로 sgu-pikcha-admin의
+     GET /admin/waitlist를 불러오고, 취소는 공개 엔드포인트(/waitlist/cancel)를 그대로 씀. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>웨이팅리스트 관리</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar">
+    <a href="../WaitingList_AdminPage/index.html" class="back-link">← 대시보드</a>
+    <h1>웨이팅리스트 관리</h1>
+    <button type="button" class="refresh-btn" id="refreshBtn">새로고침</button>
+  </div>
+
+  <p class="status-msg" id="statusMsg"></p>
+
+  <table class="waitlist-table">
+    <thead>
+      <tr>
+        <th>순번</th>
+        <th>학과</th>
+        <th>이름</th>
+        <th>인원</th>
+        <th>전화번호</th>
+        <th>상태</th>
+        <th>등록시각</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="waitlistBody">
+      <tr><td colspan="8" class="empty-row">불러오는 중...</td></tr>
+    </tbody>
+  </table>
+
+  <script src="script.js"></script>
+</body>
+</html>

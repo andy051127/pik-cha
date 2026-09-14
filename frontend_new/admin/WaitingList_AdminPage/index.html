@@ -1,5 +1,5 @@
 <!-- 관리자 대시보드 허브 화면. 3개 카드(Dashboard/Waiting List/Print Status)로
-     각 관리 화면 진입 - 지금은 HTML/CSS 스캐폴드만이라 실데이터/링크는 나중에 연결. -->
+     각 관리 화면 진입. Dashboard 카드의 대기팀 수는 공개 엔드포인트(/waitlist/count)로 폴링. -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -27,15 +27,15 @@
   </div>
 
   <div class="cards">
-    <a class="card card-filled" href="#">
+    <div class="card card-filled">
       <div class="card-label">01 | Dashboard</div>
       <div class="card-body">
-        <p class="card-number">4팀</p>
+        <p class="card-number"><span id="waitingCount">-</span>팀</p>
         <p class="card-caption">현재 대기중</p>
       </div>
-    </a>
+    </div>
 
-    <a class="card" href="#">
+    <a class="card" href="../WaitingList_AdminManage/index.html">
       <div class="card-label">02 | Waiting List</div>
       <div class="card-body">
         <p class="card-title">웨이팅리스트 관리</p>
@@ -43,7 +43,7 @@
       </div>
     </a>
 
-    <a class="card" href="#">
+    <a class="card" href="../PrintStatus_AdminManage/index.html">
       <div class="card-label">03 | Print Status</div>
       <div class="card-body">
         <p class="card-title">인화 상태 관리</p>
@@ -51,5 +51,7 @@
       </div>
     </a>
   </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

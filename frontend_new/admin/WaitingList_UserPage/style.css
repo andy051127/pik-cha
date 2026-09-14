@@ -136,3 +136,10 @@ html, body {
   background: #5fa384;
   color: #fff;
 }
+
+.error-msg {
+  min-height: 1.4em;
+  font-size: 14px;
+  color: #d64545;
+  text-align: center;
+}

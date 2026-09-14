@@ -32,6 +32,8 @@ def handler(event, context):
             return _handle_start_session(event)
         if path.endswith("/waitlist/advance") and method == "POST":
             return _handle_advance(event)
+        if path.endswith("/waitlist/cancel") and method == "POST":
+            return _handle_cancel(event)
         if method == "GET":
             ticket_number = _extract_ticket_number(path)
             if ticket_number is not None:
@@ -245,6 +247,35 @@ def _handle_advance(event):
 
     print(f"➡️  대기열 진행: now_serving={next_ticket}")
     return _response(200, {"now_serving": next_ticket})
+
+
+def _handle_cancel(event):
+    """웨이팅 유저페이지의 '취소하기' 버튼 + 관리자 웨이팅리스트 관리 화면 둘 다에서 쓰는
+    공용 취소 엔드포인트. 아직 촬영 시작 전(waiting/called)인 번호만 취소 가능 -
+    이미 촬영중/완료된 번호는 취소해봐야 의미가 없으므로 막는다."""
+    body = json.loads(event.get("body") or "{}")
+    try:
+        ticket_number = int(body.get("ticket_number"))
+    except (TypeError, ValueError):
+        return _response(400, {"error": "ticket_number가 필요합니다"})
+
+    item = table.get_item(Key={"ticket_number": ticket_number}).get("Item")
+    if not item:
+        return _response(404, {"error": "존재하지 않는 순번입니다"})
+
+    status = item.get("status")
+    if status not in ("waiting", "called"):
+        return _response(400, {"error": f"이미 진행된 순번은 취소할 수 없습니다 (status={status})"})
+
+    table.update_item(
+        Key={"ticket_number": ticket_number},
+        UpdateExpression="SET #s = :canceled, canceled_at = :now",
+        ExpressionAttributeNames={"#s": "status"},
+        ExpressionAttributeValues={":canceled": "canceled", ":now": datetime.now(timezone.utc).isoformat()},
+    )
+
+    print(f"🛑 웨이팅 취소: ticket_number={ticket_number}")
+    return _response(200, {"ticket_number": ticket_number, "status": "canceled"})
 
 
 def _handle_now_serving():
