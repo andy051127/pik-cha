@@ -553,6 +553,7 @@ async def create_fourcut_composited(
     name: str = Form(None),  # Personal_Info 화면에서 입력한 이름
     phone_number: str = Form(None),  # Personal_Info 화면에서 입력한 전화번호
     print_quantity: str = Form(None),  # Number_of_Prints 화면에서 고른 인쇄 매수
+    ticket_number: str = Form(None),  # 웨이팅 순번 - 관리자 인화상태 화면에 표시하기 위해 세션에 같이 기록
 ):
     """
     ★ 프론트(Select_Frame v2)가 로고+패턴+사진+프레임색까지 Canvas로 이미
@@ -596,9 +597,15 @@ async def create_fourcut_composited(
     except ValueError:
         print_quantity_int = 1
 
+    try:
+        ticket_number_int = int(ticket_number) if ticket_number else None
+    except ValueError:
+        ticket_number_int = None
+
     # ★ AWS 연동 지점: /api/fourcut/create와 완전히 동일한 업로드 로직 재사용
     upload_result = await asyncio.to_thread(
-        aws_uploader.upload_fourcut_session, cut_paths, str(output_path), name, phone_number, print_quantity_int
+        aws_uploader.upload_fourcut_session,
+        cut_paths, str(output_path), name, phone_number, print_quantity_int, ticket_number_int,
     )
 
     response = {

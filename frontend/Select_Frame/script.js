@@ -446,6 +446,20 @@ nextBtn.addEventListener("click", async () => {
         console.log("인쇄 매수(pikcha_print_quantity) 읽기 실패 - 1장으로 진행:", e.message);
       }
 
+      // ★ 순번(웨이팅 티켓 번호)도 같이 보내서, 관리자 인화상태 화면에서 세션과
+      //   순번을 연결해 보여줄 수 있게 함 (그전까진 세션 <-> 티켓 연결고리가 없었음)
+      try {
+        const ticketInfoRaw = sessionStorage.getItem("pikcha_ticket_info");
+        if (ticketInfoRaw) {
+          const ticketInfo = JSON.parse(ticketInfoRaw);
+          if (ticketInfo && ticketInfo.ticketNumber != null) {
+            formData.append("ticket_number", ticketInfo.ticketNumber);
+          }
+        }
+      } catch (e) {
+        console.log("순번 정보(pikcha_ticket_info) 읽기 실패 - 순번 없이 진행:", e.message);
+      }
+
       const res = await fetch(`${API_BASE}/api/fourcut/create-composited`, {
         method: "POST",
         body: formData,

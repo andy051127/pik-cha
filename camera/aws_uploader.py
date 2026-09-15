@@ -69,14 +69,16 @@ def _request_upload_urls(
     name: str | None = None,
     phone_number: str | None = None,
     print_quantity: int | None = None,
+    ticket_number: int | None = None,
 ) -> dict | None:
     """
     API Gateway -> presign_lambda 호출해서 여러 파일의 presigned PUT URL을 한 번에 받는다.
     반환: {"files": {filename: {"upload_url":..., "key":...}, ...}} 또는 실패 시 None
 
-    ★ name/phone_number/print_quantity: Personal_Info(이제는 순번 입력)/Number_of_Prints에서
+    ★ name/phone_number/print_quantity/ticket_number: 순번 입력/Number_of_Prints에서
       온 값. 여기서 보내는 JSON body에 실어 보내면, presign_lambda가 세션 아이템에
       upsert해두고, 그걸 session-logger가 인쇄 큐에 넣을 때 quantity로 그대로 씀.
+      ticket_number는 관리자 인화상태 화면에서 세션-순번을 연결해 보여주는 용도.
     """
     try:
         body = {"session_id": session_id, "filenames": filenames}
@@ -86,6 +88,8 @@ def _request_upload_urls(
             body["phone_number"] = phone_number
         if print_quantity:
             body["print_quantity"] = print_quantity
+        if ticket_number is not None:
+            body["ticket_number"] = ticket_number
         resp = requests.post(
             f"{API_GATEWAY_URL}/upload-url",
             json=body,
@@ -202,6 +206,7 @@ def upload_fourcut_session(
     name: str | None = None,
     phone_number: str | None = None,
     print_quantity: int | None = None,
+    ticket_number: int | None = None,
 ) -> dict | None:
     """
     한 세션의 개별 컷 4장 + 합성본 1장을 presigned URL로 S3에 업로드하고,
@@ -234,7 +239,7 @@ def upload_fourcut_session(
     cut_filenames = [f"cut_{i}.jpg" for i in range(1, len(cut_paths) + 1)]
     all_filenames = cut_filenames + ["fourcut.jpg"]
 
-    presign_result = _request_upload_urls(session_id, all_filenames, name, phone_number, print_quantity)
+    presign_result = _request_upload_urls(session_id, all_filenames, name, phone_number, print_quantity, ticket_number)
     if not presign_result or "files" not in presign_result:
         print("⚠️  [API] presigned URL 발급 실패 - 업로드 중단")
         return None

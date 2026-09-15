@@ -34,6 +34,7 @@ def _handle_upload_url(event):
     name = body.get("name", "")
     phone_number = body.get("phone_number", "")
     print_quantity = body.get("print_quantity")
+    ticket_number = body.get("ticket_number")
 
     if not session_id or not filenames:
         return _response(400, {"error": "session_id, filenames가 필요합니다"})
@@ -64,6 +65,14 @@ def _handle_upload_url(event):
     if quantity_int and quantity_int > 0:
         update_expr += ", printQuantity = :quantity"
         expr_values[":quantity"] = quantity_int
+
+    try:
+        ticket_number_int = int(ticket_number) if ticket_number is not None else None
+    except (TypeError, ValueError):
+        ticket_number_int = None
+    if ticket_number_int is not None:
+        update_expr += ", ticketNumber = :ticket"
+        expr_values[":ticket"] = ticket_number_int
 
     try:
         table.update_item(

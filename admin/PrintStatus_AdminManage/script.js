@@ -57,7 +57,7 @@ async function loadSessions() {
 
 function renderRows(items) {
   if (items.length === 0) {
-    sessionsBody.innerHTML = `<tr><td colspan="8" class="empty-row">세션이 없습니다</td></tr>`;
+    sessionsBody.innerHTML = `<tr><td colspan="9" class="empty-row">세션이 없습니다</td></tr>`;
     return;
   }
 
@@ -71,6 +71,7 @@ function renderRows(items) {
 
     return `
       <tr>
+        <td>${item.ticketNumber ?? "-"}</td>
         <td title="${escapeHtml(item.session_id || "")}">${escapeHtml(shortId)}</td>
         <td>${escapeHtml(item.name || "")}</td>
         <td>${escapeHtml(item.phoneNumber || "")}</td>

@@ -79,8 +79,9 @@ html, body {
 
 .ticket-wait {
   margin-top: 8px;
-  font-size: 14px;
-  color: #b1b1b1;
+  font-size: 24px;
+  font-weight: 800;
+  color: #5fa384;
 }
 
 .print-status {
@@ -89,8 +90,9 @@ html, body {
 
 .refresh-hint {
   text-align: center;
-  font-size: 14px;
-  color: #b1b1b1;
+  font-size: 19px;
+  font-weight: 700;
+  color: #666;
   line-height: 1.6;
 }
 

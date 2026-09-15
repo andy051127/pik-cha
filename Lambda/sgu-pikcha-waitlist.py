@@ -1,5 +1,9 @@
+import hashlib
+import hmac
 import json
 import os
+import secrets
+import urllib.request
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 import boto3
@@ -15,6 +19,12 @@ sessions_table = dynamodb.Table(SESSIONS_TABLE_NAME)
 
 COUNTER_KEY = 0  # ticket_number=0은 카운터 전용 예약 아이템 (실제 순번은 1번부터)
 AVG_MINUTES_PER_TEAM = float(os.environ.get("AVG_MINUTES_PER_TEAM", 6))
+
+# ── SOLAPI (SMS) 설정 - sgu-pikcha-print.py와 동일한 설정/로직 ──────────────────
+SOLAPI_API_KEY = os.environ.get("SOLAPI_API_KEY", "")
+SOLAPI_API_SECRET = os.environ.get("SOLAPI_API_SECRET", "")
+SOLAPI_SENDER_NUMBER = os.environ.get("SOLAPI_SENDER_NUMBER", "")
+SOLAPI_SEND_URL = "https://api.solapi.com/messages/v4/send"
 
 
 def handler(event, context):
@@ -187,6 +197,10 @@ def _handle_start_session(event):
         },
     )
 
+    # ★ 다음 팀 호출 시점을 "촬영 완료"가 아니라 "촬영 시작"으로 당김 - 이 팀이
+    #   촬영~합성~인쇄까지 진행하는 동안 다음 팀이 미리 부스로 이동할 시간을 벌어줌
+    _call_next_and_notify()
+
     print(f"✅ 촬영 시작: ticket_number={ticket_number}")
     return _response(200, {
         "ticket_number": ticket_number,
@@ -212,10 +226,48 @@ def _find_next_waiting_ticket() -> int | None:
     return min(int(i["ticket_number"]) for i in items)
 
 
+def _call_next_and_notify() -> int | None:
+    """남은 팀 중 가장 빠른 waiting 티켓을 찾아 called로 바꾸고 now_serving을 갱신 +
+    그 팀에게 SMS 발송. (진입 순서를 강제하진 않음 - now_serving은 표시/안내용일 뿐)
+    호출된 티켓 번호(없으면 None)를 반환."""
+    next_ticket = _find_next_waiting_ticket()
+
+    if next_ticket is None:
+        table.update_item(
+            Key={"ticket_number": COUNTER_KEY},
+            UpdateExpression="SET now_serving = :n",
+            ExpressionAttributeValues={":n": 0},
+        )
+        return None
+
+    updated = table.update_item(
+        Key={"ticket_number": next_ticket},
+        UpdateExpression="SET #s = :called, called_at = :now",
+        ExpressionAttributeNames={"#s": "status"},
+        ExpressionAttributeValues={":called": "called", ":now": datetime.now(timezone.utc).isoformat()},
+        ReturnValues="ALL_NEW",
+    )
+    table.update_item(
+        Key={"ticket_number": COUNTER_KEY},
+        UpdateExpression="SET now_serving = :n",
+        ExpressionAttributeValues={":n": next_ticket},
+    )
+
+    item = updated.get("Attributes", {})
+    phone_number = item.get("phone_number", "")
+    if phone_number:
+        name = item.get("name", "")
+        text = f"[Pik-Cha!] {name + '님, ' if name else ''}곧 손님 차례예요! 부스로 와주세요 :)"
+        _send_sms(phone_number, text)
+
+    print(f"➡️  대기열 진행: now_serving={next_ticket}")
+    return next_ticket
+
+
 def _handle_advance(event):
-    """촬영(4컷 캡처) 완료 시 app.py가 호출. 방금 끝난 팀을 photographed로 표시하고,
-    남은 팀 중 가장 빠른 waiting 티켓을 찾아 called로 바꾸고 now_serving을 갱신한다.
-    (진입 순서를 강제하진 않음 - 태블릿 표시용 값일 뿐)"""
+    """촬영(4컷 캡처) 완료 시 app.py가 호출. 방금 끝난 팀을 photographed로 표시만 한다.
+    ★ 다음 팀 호출은 더 이상 여기서 안 함 - start-session(촬영 시작 시점)으로 옮겨감,
+    그래야 다음 팀이 이 팀의 촬영~인쇄 시간 동안 미리 이동할 시간을 벌 수 있음."""
     body = json.loads(event.get("body") or "{}")
     finished_ticket_number = body.get("ticket_number")
 
@@ -231,22 +283,44 @@ def _handle_advance(event):
         except (TypeError, ValueError):
             print(f"⚠️  [advance] ticket_number 형식이 이상함: {finished_ticket_number}")
 
-    next_ticket = _find_next_waiting_ticket()
-    if next_ticket is not None:
-        table.update_item(
-            Key={"ticket_number": next_ticket},
-            UpdateExpression="SET #s = :called, called_at = :now",
-            ExpressionAttributeNames={"#s": "status"},
-            ExpressionAttributeValues={":called": "called", ":now": datetime.now(timezone.utc).isoformat()},
-        )
-    table.update_item(
-        Key={"ticket_number": COUNTER_KEY},
-        UpdateExpression="SET now_serving = :n",
-        ExpressionAttributeValues={":n": next_ticket if next_ticket is not None else 0},
-    )
+    return _response(200, {"status": "ok"})
 
-    print(f"➡️  대기열 진행: now_serving={next_ticket}")
-    return _response(200, {"now_serving": next_ticket})
+
+def _solapi_auth_header() -> str:
+    date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    salt = secrets.token_hex(16)
+    signature = hmac.new(
+        SOLAPI_API_SECRET.encode("utf-8"), (date + salt).encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+    return f"HMAC-SHA256 apiKey={SOLAPI_API_KEY}, date={date}, salt={salt}, signature={signature}"
+
+
+def _send_sms(phone_number: str, text: str) -> bool:
+    if not SOLAPI_API_KEY or not SOLAPI_API_SECRET or not SOLAPI_SENDER_NUMBER:
+        print("⚠️  [SMS] SOLAPI_API_KEY/SECRET/SENDER_NUMBER 환경변수 미설정 - 발송 건너뜀")
+        return False
+
+    payload = json.dumps({
+        "message": {"to": phone_number, "from": SOLAPI_SENDER_NUMBER, "text": text, "type": "SMS"}
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        SOLAPI_SEND_URL,
+        data=payload,
+        method="POST",
+        headers={
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": _solapi_auth_header(),
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            resp.read()
+        print(f"✅ [SMS] 다음팀 호출 문자 발송: to={phone_number}")
+        return True
+    except Exception as e:
+        print(f"⚠️  [SMS] 발송 실패: {e}")
+        return False
 
 
 def _handle_cancel(event):

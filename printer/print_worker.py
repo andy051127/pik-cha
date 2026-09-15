@@ -46,7 +46,7 @@ API_BASE = os.environ.get(
 PRINTER_NAME = os.environ.get("PIKCHA_PRINTER_NAME") or win32print.GetDefaultPrinter()
 POLL_INTERVAL_SEC = 5
 PRINT_WAIT_TIMEOUT_SEC = 120
-SECONDS_PER_COPY_ESTIMATE = 30  # 매수별 대기 타임아웃 계산용 (실제 완료 판정은 스풀 큐가 비는 걸로 함)
+SECONDS_PER_COPY_ESTIMATE = 50  # 매수별 대기 타임아웃 계산용 (실제 완료 판정은 스풀 큐가 비는 걸로 함)
 MAX_RETRIES_PER_JOB = 3  # 같은 작업이 이 횟수만큼 연속 실패하면 서버에 실패 신고 후 포기
 # ===============================================================================
 
