@@ -1,0 +1,45 @@
+<!-- 실제 촬영 화면. ★ 새 디자인(Sub_사진 촬영.svg) 적용.
+     ★ 캐논 DSLR 백엔드 연동 버전: 왼쪽 영역엔 웹캠(<video>) 대신
+     백엔드 웹소켓이 스트리밍하는 라이브뷰 프레임을 <img>로 표시한다.
+
+     bg.svg는 원본 디자인에서 라이브뷰 자리(회색 박스)는 그대로 두고,
+     [촬영 횟수]/[남은 시간] 숫자만 빼서 만든 정적 배경이다(숫자는 매초 바뀌므로).
+     라이브뷰 박스와 숫자는 bg.svg와 같은 좌표계(viewBox 1342x877)를 쓰는
+     오버레이 요소로 그 위에 정확히 겹쳐진다.
+     로직(카운트다운/촬영 횟수)은 전부 script.js에 있고 그대로 유지된다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Take a Picture</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="stage">
+    <div class="frame">
+      <img class="stage-bg" src="bg.svg" alt="">
+
+      <!-- ★ 세로형 라이브뷰. 백엔드가 웹소켓으로 보내주는 base64 JPEG
+           프레임을 script.js가 여기 src로 계속 갱신한다. bg.svg의 회색
+           박스와 정확히 같은 자리(%좌표)에 겹쳐진다. -->
+      <div class="camera-wrap">
+        <img id="camera" class="camera-feed" alt="라이브뷰" />
+        <!-- 촬영 순간 화면을 하얗게 번쩍이는 플래시 효과용 오버레이 -->
+        <div class="flash-overlay" id="flashOverlay"></div>
+      </div>
+
+      <!-- bg.svg와 동일한 viewBox를 쓰는 오버레이 SVG: 촬영 횟수 / 남은 시간 숫자 -->
+      <svg class="count-svg" viewBox="0 0 1342 877" preserveAspectRatio="xMidYMid meet">
+        <text x="978" y="389" text-anchor="middle" font-size="62" font-weight="700" fill="#ffffff"><tspan id="shotCurrent">1</tspan>/<tspan id="shotTotal">8</tspan></text>
+        <text id="countdown" x="978" y="699" text-anchor="middle" font-size="62" font-weight="700" fill="#ffffff">5</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ★ captureCanvas 없음: 브라우저에서 프레임을 캡처하지 않는다.
+       실제 촬영본은 서버가 카메라에서 직접 다운로드해서 저장하며,
+       review_photo 프레임 슬롯 비율(175.5 : 241.8)로 중앙 크롭되도록
+       script.js가 start 요청에 aspect 값을 함께 보낸다. -->
+  <script src="script.js"></script>
+</body>
+</html>

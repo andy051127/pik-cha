@@ -1,0 +1,31 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 화면 전체(뷰포트)를 그대로 차지하는 스테이지.
+   cursor: pointer로 "눌러서 시작"할 수 있음을 암시한다. */
+.stage {
+  width: 100vw;
+  height: 100vh;
+  background: #87cefa;
+  cursor: pointer;
+}
+
+/* sunset.svg는 noon.svg와 동일한 디자인을 사용한다.
+   원본 비율을 유지해 "Touch to start!" 등 요소가 잘리지 않게 한다(contain).
+   화면 비율이 달라 남는 여백은 .stage의 배경으로 자연스럽게 채운다. */
+.stage-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}

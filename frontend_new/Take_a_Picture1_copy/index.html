@@ -1,0 +1,39 @@
+<!-- 실제 촬영 화면 (★ 웹캠 연동 버전 - navigator.mediaDevices.getUserMedia로
+     실제 웹캠 라이브뷰/촬영을 사용한다).
+     ★ 새 디자인(Sub_사진 촬영.svg) 적용. 로직은 script.js 참고.
+
+     bg.svg는 원본 디자인에서 라이브뷰 자리(회색 박스)는 그대로 두고,
+     [촬영 횟수]/[남은 시간] 숫자만 빼서 만든 정적 배경이다(숫자는 매초 바뀌므로).
+     라이브뷰 박스와 숫자는 bg.svg와 같은 좌표계(viewBox 1342x877)를 쓰는
+     오버레이 요소로 그 위에 정확히 겹쳐진다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Take a Picture</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="stage">
+    <div class="frame">
+      <img class="stage-bg" src="bg.svg" alt="">
+
+      <!-- 세로형 라이브뷰. script.js가 getUserMedia로 받은 웹캠 스트림을 여기 연결한다.
+           bg.svg의 회색 박스와 정확히 같은 자리(%좌표)에 겹쳐진다. -->
+      <div class="camera-wrap">
+        <video id="camera" class="camera-feed" autoplay playsinline muted></video>
+        <!-- 촬영 순간 화면을 하얗게 번쩍이는 플래시 효과용 오버레이 -->
+        <div class="flash-overlay" id="flashOverlay"></div>
+      </div>
+
+      <!-- bg.svg와 동일한 viewBox를 쓰는 오버레이 SVG: 촬영 횟수 / 남은 시간 숫자 -->
+      <svg class="count-svg" viewBox="0 0 1342 877" preserveAspectRatio="xMidYMid meet">
+        <text x="978" y="389" text-anchor="middle" font-size="62" font-weight="700" fill="#ffffff"><tspan id="shotCurrent">1</tspan>/<tspan id="shotTotal">8</tspan></text>
+        <text id="countdown" x="978" y="699" text-anchor="middle" font-size="62" font-weight="700" fill="#ffffff">5</text>
+      </svg>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
