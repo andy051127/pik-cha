@@ -1,0 +1,181 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.viewport {
+  width: 100vw;
+  height: 100vh;
+  background: #87CEFA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.stage {
+  position: relative;
+  width: min(100vw, 100vh * 1342 / 877);
+  height: min(100vh, 100vw * 877 / 1342);
+  container-type: size;
+  font-family: inherit;
+}
+
+.stage-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 순번 라벨: bg.svg의 "순번 [Number]" 자리. 입력 전엔 "순번" 안내 문구가,
+   입력이 시작되면 안내 문구는 사라지고 입력된 숫자가 같은 자리에
+   중앙 정렬로 자연스럽게 표시된다(placeholder ↔ value 전환). */
+.ticket-label-wrap {
+  position: absolute;
+  left: 39%;
+  top: 37.5%;
+  width: 22%;
+  min-height: 5.5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.ticket-placeholder {
+  font-size: 2.6cqw;
+  font-weight: 700;
+}
+
+.ticket-value {
+  display: none;
+  font-size: 3.6cqw;
+  font-weight: 800;
+}
+
+.ticket-label-wrap.has-value .ticket-placeholder {
+  display: none;
+}
+
+.ticket-label-wrap.has-value .ticket-value {
+  display: block;
+}
+
+/* 순번 조회 실패("등록되지 않은 순번" 등) 메시지 */
+.error-msg {
+  position: absolute;
+  left: 15.2%;
+  top: 44.5%;
+  width: 50%;
+  min-height: 1.4em;
+  font-size: 1.15cqw;
+  color: #ffe9e9;
+}
+
+/* 숫자 키패드: 원본 좌표(1342x877)에서 원 지름 121px 기준 */
+.key-btn {
+  position: absolute;
+  width: 9.016%;
+  height: 13.8%;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.key-btn:hover {
+  transform: scale(1.05);
+  opacity: 0.75;
+}
+
+.key-btn:active {
+  transform: scale(0.93);
+}
+
+/* 5열(x: 357, 514, 671, 828, 985) x 2행(y: 508, 654) */
+.key-1 { left: 22.09%; top: 51.02%; }
+.key-2 { left: 33.79%; top: 51.02%; }
+.key-3 { left: 45.49%; top: 51.02%; }
+.key-4 { left: 57.19%; top: 51.02%; }
+.key-5 { left: 68.89%; top: 51.02%; }
+.key-6 { left: 22.09%; top: 67.68%; }
+.key-7 { left: 33.79%; top: 67.68%; }
+.key-8 { left: 45.49%; top: 67.68%; }
+.key-9 { left: 57.19%; top: 67.68%; }
+.key-0 { left: 68.89%; top: 67.68%; }
+
+/* 백스페이스: cx=985 cy=372 r=50.5 */
+.backspace-btn {
+  position: absolute;
+  left: 69.64%;
+  top: 36.66%;
+  width: 7.526%;
+  height: 11.52%;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.backspace-btn:hover {
+  transform: scale(1.05);
+  opacity: 0.75;
+}
+
+.backspace-btn:active {
+  transform: scale(0.93);
+}
+
+/* BACK / NEXT */
+.hit-btn {
+  position: absolute;
+  top: 89.339%;
+  width: 12.369%;
+  height: 5.359%;
+  background: none;
+  border: none;
+  border-radius: 9999px;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.back-btn {
+  left: 4.211%;
+}
+
+.next-btn {
+  left: 84.389%;
+}
+
+.hit-btn:hover {
+  transform: scale(1.03);
+  opacity: 0.75;
+}
+
+.hit-btn:active {
+  transform: scale(0.97);
+}
+
+/* 순번이 아직 입력되지 않았거나 확인 중일 때 NEXT를 반투명 + 클릭 불가로 만든다 */
+.next-btn:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}

@@ -1,0 +1,51 @@
+<!-- 웨이팅리스트에서 발급받은 순번을 입력받는 화면 (구 Personal_Info).
+     ★ 새 디자인(Sub_사진 촬영 시작.svg → 실제로는 "순번 입력" 화면)을 bg.svg 배경으로 쓰고,
+     그 위에 숫자 키패드(0~9)/백스페이스/BACK/NEXT만 실제 동작하는 요소로 얹는다.
+     bg.svg는 원본에서 "순번 [Number]" 라벨만 빼서 만든 정적 배경이다
+     (입력된 순번을 라벨 자리에 동적으로 표시해야 하기 때문). -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Ticket Number</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="viewport">
+    <div class="stage">
+      <img class="stage-bg" src="bg.svg" alt="">
+
+      <!-- 순번 라벨: bg.svg에서 뺀 "순번 [Number]" 자리. 입력이 없으면 "순번" 안내 문구가,
+           입력이 시작되면 안내 문구는 사라지고 입력된 숫자가 같은 자리에 중앙 정렬로 표시된다. -->
+      <div class="ticket-label-wrap" id="ticketLabelWrap">
+        <span class="ticket-placeholder">순번</span>
+        <span class="ticket-value" id="ticketDisplay"></span>
+      </div>
+
+      <!-- 조회 실패(등록되지 않은 순번 등) 메시지 표시용 -->
+      <p class="error-msg" id="errorMsg"></p>
+
+      <!-- 숫자 키패드: bg.svg에 이미 원 + 숫자가 그려져 있으므로, 투명한 클릭 영역만 얹는다 -->
+      <button class="key-btn key-1" data-digit="1" aria-label="1"></button>
+      <button class="key-btn key-2" data-digit="2" aria-label="2"></button>
+      <button class="key-btn key-3" data-digit="3" aria-label="3"></button>
+      <button class="key-btn key-4" data-digit="4" aria-label="4"></button>
+      <button class="key-btn key-5" data-digit="5" aria-label="5"></button>
+      <button class="key-btn key-6" data-digit="6" aria-label="6"></button>
+      <button class="key-btn key-7" data-digit="7" aria-label="7"></button>
+      <button class="key-btn key-8" data-digit="8" aria-label="8"></button>
+      <button class="key-btn key-9" data-digit="9" aria-label="9"></button>
+      <button class="key-btn key-0" data-digit="0" aria-label="0"></button>
+
+      <!-- 백스페이스: bg.svg에 이미 원 + 화살표가 그려져 있으므로, 투명한 클릭 영역만 얹는다 -->
+      <button class="backspace-btn" id="backspaceBtn" aria-label="지우기"></button>
+
+      <!-- BACK/NEXT: bg.svg에 이미 알약 모양 + 글자가 그려져 있으므로, 투명한 클릭 영역만 얹는다 -->
+      <button class="hit-btn back-btn" id="backBtn" aria-label="이전"></button>
+      <button class="hit-btn next-btn" id="nextBtn" aria-label="다음" disabled></button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
