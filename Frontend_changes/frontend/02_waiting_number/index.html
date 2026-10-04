@@ -26,6 +26,7 @@
 
     <!-- 입력된 순번이 표시되는 자리의 밑줄 (582 x 2) -->
     <div class="divider" id="number-line"></div>
+    <p id="error-msg" role="alert" hidden style="position:absolute;left:124px;top:565px;width:582px;color:#b04a3a;font-size:20px"></p>
 
     <!-- 숫자 키패드: 3열 x 4행. 마지막 줄은 0 과 지우기(←) -->
     <div class="keypad" id="keypad">
@@ -45,7 +46,8 @@
 
     <!-- 하단 이동 버튼 -->
     <a class="nav-btn nav-back" id="nav-back" href="../01_landing_main/index.html">BACK</a>
-    <a class="nav-btn nav-next" id="nav-next" href="../03_number_of_prints/index.html">NEXT</a>
+    <a class="nav-btn nav-next" id="nav-next" href="#">NEXT</a>
   </main>
+  <script src="script.js"></script>
 </body>
 </html>
