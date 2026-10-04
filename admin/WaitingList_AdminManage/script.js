@@ -66,12 +66,13 @@ async function loadWaitlist() {
 
 function renderRows(items) {
   if (items.length === 0) {
-    waitlistBody.innerHTML = `<tr><td colspan="8" class="empty-row">등록된 웨이팅이 없습니다</td></tr>`;
+    waitlistBody.innerHTML = `<tr><td colspan="9" class="empty-row">등록된 웨이팅이 없습니다</td></tr>`;
     return;
   }
 
   waitlistBody.innerHTML = items.map((item) => {
     const cancelable = item.status === "waiting" || item.status === "called";
+    const hasPhone = !!item.phone_number;
     const createdAt = item.created_at ? new Date(item.created_at).toLocaleString("ko-KR") : "-";
     return `
       <tr>
@@ -87,12 +88,20 @@ function renderRows(items) {
             취소
           </button>
         </td>
+        <td>
+          <button type="button" class="resend-btn" data-ticket="${item.ticket_number}" ${hasPhone ? "" : "disabled"}>
+            메시지 재발송
+          </button>
+        </td>
       </tr>
     `;
   }).join("");
 
   waitlistBody.querySelectorAll(".cancel-btn:not(:disabled)").forEach((btn) => {
     btn.addEventListener("click", () => cancelTicket(btn.dataset.ticket));
+  });
+  waitlistBody.querySelectorAll(".resend-btn:not(:disabled)").forEach((btn) => {
+    btn.addEventListener("click", () => resendMessage(btn.dataset.ticket));
   });
 }
 
@@ -121,6 +130,28 @@ async function cancelTicket(ticketNumber) {
   } catch (err) {
     console.error(err);
     statusMsg.textContent = "서버에 연결할 수 없습니다.";
+  }
+}
+
+// ── 메시지 재발송 (Basic Auth 필요, sgu-pikcha-admin) ─────────────
+async function resendMessage(ticketNumber) {
+  if (!window.confirm(`${ticketNumber}번에게 순번 호출 안내 문자를 다시 보낼까요?`)) return;
+
+  try {
+    const res = await authedFetch("/admin/waitlist/sms/resend", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ticket_number: parseInt(ticketNumber, 10) }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      statusMsg.textContent = data.error || "메시지 재발송에 실패했습니다.";
+      return;
+    }
+    statusMsg.textContent = `${ticketNumber}번에게 메시지를 재발송했습니다.`;
+  } catch (err) {
+    console.error(err);
+    statusMsg.textContent = err.message;
   }
 }
 

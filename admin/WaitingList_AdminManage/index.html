@@ -1,5 +1,6 @@
 <!-- 웨이팅리스트 관리 화면. 관리자 Basic Auth로 sgu-pikcha-admin의
-     GET /admin/waitlist를 불러오고, 취소는 공개 엔드포인트(/waitlist/cancel)를 그대로 씀. -->
+     GET /admin/waitlist를 불러오고, 취소는 공개 엔드포인트(/waitlist/cancel)를 그대로 씀.
+     메시지 재발송은 POST /admin/waitlist/sms/resend (Basic Auth). -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -27,10 +28,11 @@
         <th>상태</th>
         <th>등록시각</th>
         <th></th>
+        <th></th>
       </tr>
     </thead>
     <tbody id="waitlistBody">
-      <tr><td colspan="8" class="empty-row">불러오는 중...</td></tr>
+      <tr><td colspan="9" class="empty-row">불러오는 중...</td></tr>
     </tbody>
   </table>
 

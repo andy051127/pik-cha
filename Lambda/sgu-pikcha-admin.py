@@ -57,6 +57,8 @@ def handler(event, context):
             return _handle_reprint(event)
         if path.endswith("/admin/sms/resend") and method == "POST":
             return _handle_resend_sms(event)
+        if path.endswith("/admin/waitlist/sms/resend") and method == "POST":
+            return _handle_waitlist_sms_resend(event)
         return _response(404, {"error": f"경로를 찾을 수 없음: {method} {path}"})
     except Exception as e:
         print(f"❌ 에러: {e}")
@@ -215,6 +217,41 @@ def _handle_resend_sms(event):
 
     print(f"✅ [관리자] SMS 재발송: session_id={session_id}")
     return _response(200, {"status": "sent", "session_id": session_id})
+
+
+def _handle_waitlist_sms_resend(event):
+    """웨이팅리스트 관리 화면에서 특정 팀에게 순번 호출 안내 문자를 (재)발송.
+    ticket_number ↔ session_id가 DB로 연결돼있지 않아서(_handle_resend_sms처럼 세션
+    조회로 못 감) waitlist_table의 phone_number로 바로 보낸다. SMS 발송 로직
+    자체(_send_sms/_solapi_auth_header)는 print/resend와 동일한 함수 재사용."""
+    body = json.loads(event.get("body") or "{}")
+    try:
+        ticket_number = int(body.get("ticket_number"))
+    except (TypeError, ValueError):
+        return _response(400, {"error": "ticket_number가 필요합니다"})
+
+    item = waitlist_table.get_item(Key={"ticket_number": ticket_number}).get("Item")
+    if not item:
+        return _response(404, {"error": "존재하지 않는 순번입니다"})
+
+    phone_number = item.get("phone_number", "")
+    if not phone_number:
+        return _response(400, {"error": "이 순번엔 전화번호가 없습니다"})
+
+    name = item.get("name", "")
+    text = f"[Pik-Cha!] {name + '님, ' if name else ''}{ticket_number}번 지금 입장 가능합니다! 부스로 와주세요 :)"
+
+    if not _send_sms(phone_number, text):
+        return _response(502, {"error": "SMS 발송에 실패했습니다"})
+
+    waitlist_table.update_item(
+        Key={"ticket_number": ticket_number},
+        UpdateExpression="SET sms_resent_at = :now",
+        ExpressionAttributeValues={":now": datetime.now(timezone.utc).isoformat()},
+    )
+
+    print(f"✅ [관리자] 웨이팅리스트 문자 재발송: ticket_number={ticket_number}")
+    return _response(200, {"status": "sent", "ticket_number": ticket_number})
 
 
 def _solapi_auth_header() -> str:

@@ -119,3 +119,26 @@ html, body {
   cursor: not-allowed;
   background: #fff;
 }
+
+.resend-btn {
+  padding: 6px 14px;
+  border: 1px solid #5fa384;
+  border-radius: 50px;
+  background: #fff;
+  color: #5fa384;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.resend-btn:hover {
+  background: #5fa384;
+  color: #fff;
+}
+
+.resend-btn:disabled {
+  border-color: #dedede;
+  color: #dedede;
+  cursor: not-allowed;
+  background: #fff;
+}
