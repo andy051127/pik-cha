@@ -1,0 +1,52 @@
+/* =====================================================================
+   01 메인  (Figma 1:180  Sub_메인화면_pik-cha)
+   공통 스타일(../common.css) 위에 얹는 이 화면 전용 스타일.
+   구성: PHOTOBOOTH 3줄 배너 → 가운데 로고 → "웨이팅 등록하기" 버튼
+   ===================================================================== */
+
+/* 화면에는 안 보이고 화면 읽기 프로그램에만 읽히는 글자 (접근성용 제목) */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* ── PHOTOBOOTH 배너: 글자 140px, 줄 간격 139px, 가로 가운데 정렬 ── */
+.row {
+  position: absolute;
+  left: 0; width: 100%;
+  height: 201px;
+  font-family: var(--font-wide);
+  font-size: 140px;
+  line-height: 201px;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--coral);
+}
+.row-1 { top: 145px; }     /* 위 줄 */
+.row-2 { top: 284px; }     /* 가운데 줄 (로고 뒤에 가려짐) */
+.row-3 { top: 423px; }     /* 아래 줄 */
+
+/* ── 가운데 로고: 930 x 197 ── */
+.logo { position: absolute; left: 196px; top: 295px; width: 930px; height: 197px; display: block; }
+
+/* ── 웨이팅 등록하기 버튼: 751 x 99 알약. 마우스를 올리면 코랄로 채워지며 살짝 커진다 ── */
+.wait-btn {
+  position: absolute;
+  left: 295px; top: 711px;
+  width: 751px; height: 99px;
+  border: 1px solid var(--coral);
+  border-radius: 50px;
+  background: var(--white);
+  color: #000;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 95px;
+  padding-right: 10px;      /* 글자 가운데를 Figma 위치(왼쪽 5px)에 맞춤 */
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.wait-btn:hover  { background: var(--coral); color: var(--white); transform: scale(1.02); }
+.wait-btn:active { transform: scale(0.98); }

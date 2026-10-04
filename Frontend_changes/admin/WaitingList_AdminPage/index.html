@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1342">
+  <title>PIK-CHA! - 관리자</title>
+  <!-- 공통 스타일(admin.css) → 이 화면 전용 스타일 순서 -->
+  <link rel="stylesheet" href="../admin.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    관리자 메인 (Figma 1:605  WaitingList_AdminPage)
+    위쪽 코랄 배너 + 흰 상단바, 아래쪽 메뉴 카드 3개로 이루어진 대시보드 첫 화면이다.
+    JS 연결 지점
+      · #waiting-now             : "N팀" 현재 대기 팀 수 (시안 값 4)
+      · #btn-register-page       : 등록 페이지(태블릿 QR 화면)로 가는 링크
+      · #btn-admin               : 관리자 계정 버튼 (지금은 링크 없음 "#")
+      · [data-menu]              : 메뉴 카드 3개 = dashboard | waiting | print
+                                   (하위 화면 시안이 아직 없어서 href 는 "#")
+  -->
+  <main class="stage" data-screen="admin-main">
+    <!-- 코랄 배너: 배경 + 가운데 큰 PHOTOBOOTH 글자 (창 폭 전체로 늘어난다) -->
+    <div class="banner"></div>
+    <h1 class="banner-title">PHOTOBOOTH</h1>
+
+    <!-- 흰 상단바: 왼쪽 로고 / 오른쪽 등록페이지 링크 + 관리자 버튼 -->
+    <header class="top">
+      <img class="logo" src="../../assets/logo-coral.svg" alt="PIK-CHA!">
+      <a class="reg" id="btn-register-page" href="../WaitingList_AdminQRPage/index.html">등록페이지</a>
+      <a class="admin" id="btn-admin" href="#">
+        <span class="avatar">😃</span>
+        <span class="admin-name">관리자</span>
+      </a>
+    </header>
+
+    <!-- 메뉴 카드 3개: 창 폭에 맞춰 균등하게 늘어난다 -->
+    <div class="cards">
+      <!-- 01 대시보드 (진한 카드). 큰 글자 = 현재 대기 팀 수 -->
+      <a class="card dark" data-menu="dashboard" href="#">
+        <span class="head">01 | Dashboard</span>
+        <strong class="big" id="waiting-now">4팀</strong>
+        <span class="sub">현재 대기중</span>
+      </a>
+      <!-- 02 웨이팅리스트 관리 -->
+      <a class="card" data-menu="waiting" href="../WaitingList_AdminManage/index.html">
+        <span class="head">02 | Waiting List</span>
+        <strong class="big">웨이팅리스트 관리</strong>
+        <span class="sub">대기팀 순번 호출 · 취소 처리</span>
+      </a>
+      <!-- 03 인화 상태 관리 -->
+      <a class="card" data-menu="print" href="../PrintStatus_AdminManage/index.html">
+        <span class="head">03 | Print Status</span>
+        <strong class="big">인화 상태 관리</strong>
+        <span class="sub">완료 처리 · 호출</span>
+      </a>
+    </div>
+  </main>
+</body>
+</html>

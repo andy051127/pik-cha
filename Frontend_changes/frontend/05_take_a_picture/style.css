@@ -1,0 +1,27 @@
+/* =====================================================================
+   05 사진 촬영  (Figma 1:14  Sub_사진 촬영)
+   구성: (왼쪽) 카메라 프리뷰 회색 자리 / (오른쪽) 촬영 횟수 · 구분선 · 남은 시간
+   ===================================================================== */
+
+/* 카메라 프리뷰 자리: 523 x 721 (색은 common.css 의 .photo) */
+.preview { left: 55px; top: 110px; width: 523px; height: 721px; }
+
+/* 오른쪽 정보 기둥: 가운데 x = 962 (left 762 + 폭 400 / 2). 글자는 모두 이 기둥의 가운데에 정렬 */
+.info { position: absolute; left: 762px; top: 0; width: 400px; height: 100%; text-align: center; color: var(--coral); }
+
+.label, .value { position: absolute; left: 0; width: 100%; white-space: nowrap; line-height: normal; }
+.label { font-size: 48px; }                       /* "촬영 횟수" / "남은 시간" */
+.value { font-size: 90px; font-weight: 100; }     /* "0/8" / "5" : 가장 얇은 굵기 */
+
+.l-shots { top: 203px; font-weight: 100; }        /* 촬영 횟수 라벨 (얇게) */
+.v-shots { top: 272px; }                          /* 촬영 횟수 값 */
+.l-time  { top: 539px; font-weight: 300; }        /* 남은 시간 라벨 (조금 더 굵게) */
+.v-time  { top: 608px; }                          /* 남은 시간 값 */
+
+/* 두 영역을 나누는 연한 코랄 선 (x=687, y=470, 582 x 1). left 는 .info 기준이라 -75 */
+.divider {
+  position: absolute;
+  left: -75px; top: 470px;
+  width: 582px; height: 1px;
+  background: #f7bdb3;
+}

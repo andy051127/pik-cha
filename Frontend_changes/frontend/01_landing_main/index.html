@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1342">
+  <title>PIK-CHA! - Main</title>
+  <!-- 공통 스타일 → 이 화면 전용 스타일 순서로 불러온다 -->
+  <link rel="stylesheet" href="../common.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    01 메인 (Figma 1:180)  흐름: [여기] → 02 순번 입력
+    JS 연결 지점
+      · #waiting-register-btn : "웨이팅 등록하기" 버튼 (현재는 02 화면으로 이동하는 링크)
+  -->
+  <main class="stage" data-screen="landing">
+    <!-- 화면 읽기 프로그램용 제목 (눈에는 보이지 않음) -->
+    <h1 class="sr-only">PHOTOBOOTH PIK-CHA!</h1>
+
+    <!-- PHOTOBOOTH 배너 3줄 (글자는 CSS 폰트로 그린다. 세 줄이 같은 글자) -->
+    <p class="row row-1">PHOTOBOOTH</p>
+    <p class="row row-2">PHOTOBOOTH</p>
+    <p class="row row-3">PHOTOBOOTH</p>
+
+    <!-- 가운데 PIK-CHA! 로고 (SVG, 그림자 포함) -->
+    <img class="logo" src="../../assets/logo-dark.svg" alt="PIK-CHA!">
+
+    <!-- 웨이팅 등록하기 버튼 → 02 순번 입력 -->
+    <a class="wait-btn" id="waiting-register-btn" href="../02_waiting_number/index.html">웨이팅 등록하기</a>
+  </main>
+</body>
+</html>

@@ -1,0 +1,47 @@
+/* =====================================================================
+   03 사진 수량 선택  (Figma 1:143  Sub_사진 수량 선택_pik-cha)
+   구성: 안내 제목 → [ − ]  큰 숫자  [ + ] → BACK/NEXT
+   ===================================================================== */
+
+/* 안내 문구: 35px 굵게, 가로 가운데 */
+.title { top: 265px; font-size: 35px; line-height: 48px; }
+
+/* 가운데 큰 숫자: Righteous 200px.
+   padding-left 30px 은 글자 가운데를 Figma 위치(화면 중앙에서 오른쪽 15px)에 맞추기 위한 값 */
+.count {
+  position: absolute;
+  left: 0; top: 363px;
+  width: 100%; height: 201px;
+  padding-left: 30px;
+  font-family: var(--font-num);
+  font-size: 200px;
+  line-height: 201px;
+  text-align: center;
+  color: var(--coral);
+}
+
+/* ── 원형 −/+ 버튼: 지름 80px, 테두리 5px 코랄 ──
+   안의 가로선(::before)과 세로선(::after)은 CSS 로 그린다. 항상 원의 정중앙에 놓인다 */
+.round {
+  position: absolute;
+  top: 429px;
+  width: 80px; height: 80px;
+  border: 5px solid var(--coral);
+  border-radius: 50%;
+  transition: transform 0.12s ease, background-color 0.12s ease;
+}
+.round::before,
+.round::after {
+  content: "";
+  position: absolute;
+  background: var(--coral);
+  transition: background-color 0.12s ease;
+}
+.round::before { left: 50%; top: 50%; width: 34px; height: 5px; transform: translate(-50%, -50%); }   /* 가로선(−, +공통) */
+.plus::after   { left: 50%; top: 50%; width: 5px; height: 34px; transform: translate(-50%, -50%); }   /* 세로선(+ 에만) */
+.minus { left: 405px; }
+.plus  { left: 856px; }
+.round:hover  { background: var(--coral); }                           /* 마우스를 올리면 코랄로 채우고 */
+.round:hover::before,
+.round:hover::after { background: var(--white); }                    /* 기호는 흰색으로 */
+.round:active { transform: scale(0.94); }

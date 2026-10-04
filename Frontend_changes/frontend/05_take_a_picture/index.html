@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1342">
+  <title>PIK-CHA! - 사진 촬영</title>
+  <link rel="stylesheet" href="../common.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    05 사진 촬영 (Figma 1:14)  흐름: 04 카운트다운 → [여기] → 06 사진 선택
+    JS 연결 지점
+      · #camera-preview : 카메라 영상이 들어갈 회색 자리 (523 x 721, 세로형). <video> 를 이 자리에 맞춰 넣는다
+      · #shot-count     : "찍은 장수/총 장수" 표시 (시안 값 0/8)
+      · #time-left      : 다음 촬영까지 남은 초 (시안 값 5)
+      · .goto           : 화면 전체 투명 링크. 8장 촬영이 끝나면 06 으로 자동 이동하도록 바꾸고 지운다
+  -->
+  <main class="stage" data-screen="take-a-picture">
+    <div class="top-bar">
+      <img class="logo" src="../../assets/logo-white.svg" alt="PIK-CHA!">
+    </div>
+
+    <!-- 카메라 프리뷰 자리 (왼쪽, 세로형) -->
+    <div class="photo preview" id="camera-preview"></div>
+
+    <!-- 오른쪽 정보 영역: 촬영 횟수 / 구분선 / 남은 시간 (가운데 정렬 기둥 하나로 묶임) -->
+    <div class="info">
+      <p class="label l-shots">촬영 횟수</p>
+      <p class="value v-shots" id="shot-count">0/8</p>
+      <div class="divider"></div>
+      <p class="label l-time">남은 시간</p>
+      <p class="value v-time" id="time-left">5</p>
+    </div>
+
+    <!-- 임시: 촬영이 끝났다고 보고 다음 화면으로 -->
+    <a class="goto" href="../06_review_photo/index.html" aria-label="촬영 완료"></a>
+  </main>
+</body>
+</html>

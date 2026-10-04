@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko" class="mobile">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=402">
+  <title>PIK-CHA! - 대기 현황</title>
+  <link rel="stylesheet" href="../admin.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    모바일 대기 현황 (Figma 1:546  WaitingList_UserPage, 402 x 874)
+    흐름: 등록 폼(WaitingList_UserPage) → [여기] → "웨이팅 취소하기" 를 누르면 등록 폼으로
+    JS 연결 지점
+      · #my-rank      : 내 입장 순서 숫자 (시안 값 4)
+      · #my-info      : "학과 · 이름 · 인원" 한 줄 요약
+      · #wait-eta     : "앞에 N팀 · 예상 대기 M분"
+      · #print-status : 인화 상태 안내 박스 (인화가 완료되면 안내 문구를 바꾼다)
+      · #btn-cancel   : 웨이팅 취소 버튼
+    ※ "새로고침하여 실시간 순번을 확인해주세요" 문구가 있듯, 이 화면은 새로고침(또는 주기적 조회)으로 갱신하는 설계다
+  -->
+  <main class="stage" data-screen="user-status">
+    <!-- 코랄 헤더: 상태바 + PHOTO BOOTH / WAITING LIST + 오른쪽 로고 -->
+    <header class="m-head">
+      <div class="statusbar" aria-hidden="true">
+        <span class="time">12:00</span>
+        <img class="net"  src="../../assets/status-network.svg" alt="">
+        <img class="wifi" src="../../assets/status-wifi.svg" alt="">
+        <img class="bat"  src="../../assets/status-battery.svg" alt="">
+      </div>
+      <p class="photo">PHOTO<br>BOOTH</p>
+      <p class="wait">WAITING LIST</p>
+      <img class="logo2" src="../../assets/logo-second.svg" alt="PIK-CHA!">
+    </header>
+
+    <!-- 카드 1: 입장 순서 (큰 번호 + 요약 + 예상 대기) -->
+    <section class="box box-rank">
+      <h2>입장 순서</h2>
+      <p class="rank" id="my-rank">4</p><p class="rank-unit">번</p>
+      <p class="who" id="my-info">컴퓨터소프트웨어과 · 이경환 · 4명</p>
+      <p class="eta" id="wait-eta">앞에 3팀 · 예상 대기 12분</p>
+    </section>
+
+    <!-- 카드 2: 인화 상태 안내 -->
+    <section class="box box-print" id="print-status">
+      <h2>인화 상태</h2>
+      <p class="print">촬영 후 사진 인화 상태가 표시됩니다<br>인화 상태가 <b>‘완료’</b>가 되면 찾으러 와주세요!</p>
+    </section>
+
+    <p class="t refresh">새로고침하여 실시간 순번을 확인해주세요</p>
+
+    <!-- 웨이팅 취소 (지금은 등록 폼으로 돌아가는 링크) -->
+    <a class="pill cancel" id="btn-cancel" href="../WaitingList_UserPage/index.html">웨이팅 취소하기</a>
+  </main>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko" class="mobile">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=402">
+  <title>PIK-CHA! - 웨이팅 등록</title>
+  <link rel="stylesheet" href="../admin.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    모바일 웨이팅 등록 폼 (Figma 1:491  WaitingList_UserPage, 402 x 874)
+    흐름: [여기] → 등록 완료 후 "대기 현황" 화면 (WaitingList_UserPage_Status)
+    JS 연결 지점
+      · #dept       : 학과 드롭다운 (<select>. 지금은 옵션 1개뿐이라 JS 로 학과 목록을 채운다)
+      · #name       : 이름 입력
+      · #head-count : 인원수 숫자 (시안 값 2, 허용 범위 1~8 — "최대 8명까지 촬영 가능합니다")
+      · [data-action="decrease"] / [data-action="increase"] : 인원수 −/+ 버튼
+      · #btn-register : 등록 버튼. 시안은 회색(비활성) 상태. 필수 입력이 끝나면 회색을 풀어 활성화한다
+    ※ 폼 태그(<form>)는 쓰지 않았다. 제출은 JS 에서 #btn-register 클릭으로 처리한다.
+  -->
+  <main class="stage" data-screen="user-register">
+    <!-- 코랄 헤더: 상태바 + PHOTO BOOTH / WAITING LIST + 오른쪽 로고 -->
+    <header class="m-head">
+      <div class="statusbar" aria-hidden="true">
+        <span class="time">12:00</span>
+        <img class="net"  src="../../assets/status-network.svg" alt="">
+        <img class="wifi" src="../../assets/status-wifi.svg" alt="">
+        <img class="bat"  src="../../assets/status-battery.svg" alt="">
+      </div>
+      <p class="photo">PHOTO<br>BOOTH</p>
+      <p class="wait">WAITING LIST</p>
+      <img class="logo2" src="../../assets/logo-second.svg" alt="PIK-CHA!">
+    </header>
+
+    <div class="form">
+      <!-- 학과: 드롭다운 + 오른쪽 ▼ -->
+      <label class="t lb" for="dept">학과</label>
+      <select class="field" id="dept" name="dept" autocomplete="off">
+        <option>컴퓨터소프트웨어과</option>
+      </select>
+      <i class="tri"></i>
+
+      <!-- 이름 -->
+      <label class="t lb" for="name">이름</label>
+      <input class="field" id="name" name="name" type="text" placeholder="이름을 입력하세요" autocomplete="off">
+
+      <!-- 인원수: [ − ]  2 명  [ + ] -->
+      <label class="t lb lb-count">인원수</label>
+      <div class="count-box">
+        <a class="btn-minus" data-action="decrease" href="#" aria-label="인원 줄이기"></a>
+        <p class="num" id="head-count">2</p><p class="unit">명</p>
+        <a class="btn-plus" data-action="increase" href="#" aria-label="인원 늘리기"></a>
+      </div>
+      <p class="t note">최대 8명까지 촬영 가능합니다</p>
+    </div>
+
+    <!-- 등록 버튼 (지금은 대기 현황 화면으로 이동하는 링크) -->
+    <a class="pill submit" id="btn-register" href="../WaitingList_UserPage_Status/index.html">웨이팅 등록하기</a>
+  </main>
+</body>
+</html>
