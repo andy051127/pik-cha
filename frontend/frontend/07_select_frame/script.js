@@ -16,8 +16,8 @@
 // 대폭 교체됨.
 
 const API_BASE = "http://localhost:8000";
-const CANVAS_W = 550;
-const CANVAS_H = 803;
+const CANVAS_W = 1100;
+const CANVAS_H = 1605;
 
 // 실측 좌표를 비율(0~1)로 환산한 사진 슬롯 (2x2 격자, 원본 1100x1605 PNG 기준)
 const PHOTO_SLOTS = [
