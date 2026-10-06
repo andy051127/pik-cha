@@ -19,6 +19,10 @@ sessions_table = dynamodb.Table(SESSIONS_TABLE_NAME)
 
 COUNTER_KEY = 0  # ticket_number=0은 카운터 전용 예약 아이템 (실제 순번은 1번부터)
 AVG_MINUTES_PER_TEAM = float(os.environ.get("AVG_MINUTES_PER_TEAM", 6))
+WAITLIST_STATUS_PAGE_URL = os.environ.get(
+    "WAITLIST_STATUS_PAGE_URL",
+    "http://sgu-pikcha-admin.s3-website.ap-northeast-2.amazonaws.com/WaitingList_UserPage_Status/index.html",
+)
 
 # ── SOLAPI (SMS) 설정 - sgu-pikcha-print.py와 동일한 설정/로직 ──────────────────
 SOLAPI_API_KEY = os.environ.get("SOLAPI_API_KEY", "")
@@ -109,6 +113,17 @@ def _handle_register(event):
         "created_at": now.isoformat(),
         "capture_date": capture_date,
     })
+
+    # ★ 등록된 순번과 대기 현황 링크를 문자로 안내 (발송 실패해도 등록은 유지)
+    status_url = f"{WAITLIST_STATUS_PAGE_URL}?ticket={ticket_number}"
+    confirm_text = (
+        f"[Pik-Cha!] {name}님, {ticket_number}번으로 웨이팅 등록이 완료됐어요! "
+        f"대기 현황: {status_url}"
+    )
+    try:
+        _send_sms(phone_number, confirm_text)
+    except Exception as e:
+        print(f"⚠️  [SMS] 등록 확인 문자 발송 실패: {e}")
 
     print(f"✅ 웨이팅 등록: ticket_number={ticket_number}, name={name}, party_size={party_size}")
     return _response(200, {"ticket_number": ticket_number})
@@ -300,8 +315,9 @@ def _send_sms(phone_number: str, text: str) -> bool:
         print("⚠️  [SMS] SOLAPI_API_KEY/SECRET/SENDER_NUMBER 환경변수 미설정 - 발송 건너뜀")
         return False
 
+    msg_type = "LMS" if len(text.encode("utf-8")) > 90 else "SMS"
     payload = json.dumps({
-        "message": {"to": phone_number, "from": SOLAPI_SENDER_NUMBER, "text": text, "type": "SMS"}
+        "message": {"to": phone_number, "from": SOLAPI_SENDER_NUMBER, "text": text, "type": msg_type}
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -316,7 +332,7 @@ def _send_sms(phone_number: str, text: str) -> bool:
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             resp.read()
-        print(f"✅ [SMS] 다음팀 호출 문자 발송: to={phone_number}")
+        print(f"✅ [SMS] 문자 발송: to={phone_number}")
         return True
     except Exception as e:
         print(f"⚠️  [SMS] 발송 실패: {e}")
