@@ -2,29 +2,35 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1342">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PIK-CHA! - 촬영 시작</title>
   <link rel="stylesheet" href="../common.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!--
-    04 촬영 시작 카운트다운 (Figma 1:212)  흐름: 03 수량 선택 → [여기] → 05 촬영
+    04 촬영 시작 카운트다운 (Figma 40:490 countingTime)  흐름: 03 수량 선택 → [여기] → 05 촬영
     JS 연결 지점
       · #countdown-number : 남은 초 숫자 (시안 값 5). 5→4→3→2→1 로 바꾸고 0 이 되면 05 로 이동
-      · .goto             : 화면 전체 투명 링크. 자동 카운트다운을 구현하면 이 링크는 지운다
-    ※ .five 는 글자 앞에 공백이 있다(" 5"). 숫자만 바꿀 때는 앞 공백을 유지하거나 CSS 의 left 를 조정할 것
   -->
   <main class="stage" data-screen="countdown">
-    <div class="top-bar">
-      <img class="logo" src="../assets/logo-white.svg" alt="PIK-CHA!">
+    <img class="deco deco-pink" src="../assets/deco-circle-pink.svg" alt="" width="440" height="440">
+    <img class="deco deco-yellow" src="../assets/deco-circle-yellow.svg" alt="" width="336" height="336">
+    <header class="top-bar"><img class="top-logo" src="../assets/logo-header.svg" alt="PIK-CHA!" width="58" height="24"></header>
+
+    <div class="content">
+      <h1 class="title">곧 촬영이 시작돼요</h1>
+
+      <!-- 얇은 검정 원 + 그 가운데 남은 초 -->
+      <div class="dial">
+        <img class="ring" src="assets/count-ring.svg" alt="" width="288" height="288">
+        <!-- 숫자가 바뀔 때마다 원 밖으로 퍼져 나가는 물결 (script.js 가 .tick 을 붙여 재생) -->
+        <span class="ripple" aria-hidden="true"></span>
+        <span class="ripple" aria-hidden="true"></span>
+        <span class="ripple" aria-hidden="true"></span>
+        <p class="count" id="countdown-number">5</p>
+      </div>
     </div>
-
-    <p class="start">START</p>
-    <p class="in">in </p>
-    <p class="five" id="countdown-number"> 5</p>
-
-    <!-- JS 가 없으므로 임시로: 화면을 누르면 촬영 화면으로 이동 -->
   </main>
   <script src="script.js"></script>
 </body>

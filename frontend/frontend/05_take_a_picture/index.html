@@ -2,38 +2,41 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1342">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PIK-CHA! - 사진 촬영</title>
   <link rel="stylesheet" href="../common.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!--
-    05 사진 촬영 (Figma 1:14)  흐름: 04 카운트다운 → [여기] → 06 사진 선택
+    05 사진 촬영 (Figma 40:2 takingPhoto)  흐름: 04 카운트다운 → [여기] → 06 사진 선택
     JS 연결 지점
-      · #camera-preview : 카메라 영상이 들어갈 회색 자리 (523 x 721, 세로형). <video> 를 이 자리에 맞춰 넣는다
+      · #camera-preview : 카메라 영상이 들어갈 회색 자리 (비율 523 x 721, 세로형)
       · #shot-count     : "찍은 장수/총 장수" 표시 (시안 값 0/8)
       · #time-left      : 다음 촬영까지 남은 초 (시안 값 5)
-      · .goto           : 화면 전체 투명 링크. 8장 촬영이 끝나면 06 으로 자동 이동하도록 바꾸고 지운다
   -->
   <main class="stage" data-screen="take-a-picture">
-    <div class="top-bar">
-      <img class="logo" src="../assets/logo-white.svg" alt="PIK-CHA!">
+    <img class="deco deco-pink" src="../assets/deco-circle-pink.svg" alt="" width="440" height="440">
+    <img class="deco deco-yellow" src="../assets/deco-circle-yellow.svg" alt="" width="336" height="336">
+    <header class="top-bar"><img class="top-logo" src="../assets/logo-header.svg" alt="PIK-CHA!" width="58" height="24"></header>
+
+    <div class="content">
+      <!-- 카메라 프리뷰 자리 (가로 화면: 왼쪽 / 세로 화면: 위) -->
+      <div class="photo preview" id="camera-preview"></div>
+
+      <!-- 정보 영역: 촬영 횟수 / 구분선 / 남은 시간 (세로 화면에선 좌우로 나란히) -->
+      <div class="info">
+        <div class="stat">
+          <p class="label">촬영 횟수</p>
+          <p class="value" id="shot-count">0/8</p>
+        </div>
+        <span class="divider" aria-hidden="true"></span>
+        <div class="stat">
+          <p class="label">남은 시간</p>
+          <p class="value" id="time-left">5</p>
+        </div>
+      </div>
     </div>
-
-    <!-- 카메라 프리뷰 자리 (왼쪽, 세로형) -->
-    <div class="photo preview" id="camera-preview"></div>
-
-    <!-- 오른쪽 정보 영역: 촬영 횟수 / 구분선 / 남은 시간 (가운데 정렬 기둥 하나로 묶임) -->
-    <div class="info">
-      <p class="label l-shots">촬영 횟수</p>
-      <p class="value v-shots" id="shot-count">0/8</p>
-      <div class="divider"></div>
-      <p class="label l-time">남은 시간</p>
-      <p class="value v-time" id="time-left">5</p>
-    </div>
-
-    <!-- 임시: 촬영이 끝났다고 보고 다음 화면으로 -->
   </main>
   <script src="script.js"></script>
 </body>

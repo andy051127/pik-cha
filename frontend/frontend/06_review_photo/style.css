@@ -1,43 +1,60 @@
 /* =====================================================================
-   06 사진 선택  (Figma 1:101  Sub_사진 선택_pik-cha)
-   구성: (왼쪽) 4컷 보드 + 사진 자리 4칸 / (오른쪽) 제목 + 썸네일 8개(4열 x 2행) / NEXT
+   06 사진 선택  (Figma 40:58  choosePhoto)
+   구성: 4컷 보드 / 제목 + 썸네일 8개(4열 x 2행) / 선택 완료
+   · 가로 화면: 보드 왼쪽, 나머지 오른쪽   · 세로 화면: 제목 → 보드 → 썸네일 → 버튼
    ===================================================================== */
 
-/* 제목: 오른쪽 썸네일 영역 위에서 가운데 정렬 (x=730, 폭 364) */
-.title { left: 730px; width: 364px; top: 139px; font-size: 40px; line-height: 54px; }
-
-/* ── 왼쪽 4컷 보드: 429 x 626 흰 종이, 아래쪽 그림자 ── */
-.board {
-  position: absolute;
-  left: 61px; top: 139px;
-  width: 429px; height: 626px;
-  background: var(--white);
-  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+/* ── 2단 배치 (07 과 같은 틀) ── */
+.split {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "board title"
+    "board main"
+    "board cta";
+  column-gap: clamp(24px, 5vw, 72px);
+  row-gap: clamp(16px, 3dvh, 32px);
+  align-items: start;
+  justify-content: stretch;
 }
+.title  { grid-area: title; }
+.board  { grid-area: board; box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25); }   /* 이 화면 보드는 그림자 있음 */
+.thumbs { grid-area: main; }
+.cta    { grid-area: cta; justify-self: end; }
 
-/* 보드 안 사진 자리 4칸(2열 x 2행)과 오른쪽 썸네일은 모두 같은 크기 175.5 x 241.8 */
-[data-slot], .thumb { width: 175.5px; height: 241.8px; }
-
-[data-slot="1"] { left: 92.2px;  top: 233.4px; }   /* 왼쪽 위  */
-[data-slot="2"] { left: 283.3px; top: 233.4px; }   /* 오른쪽 위 */
-[data-slot="3"] { left: 92.2px;  top: 483px; }     /* 왼쪽 아래 */
-[data-slot="4"] { left: 283.3px; top: 483px; }     /* 오른쪽 아래 */
-
-/* ── 오른쪽 썸네일 8개: 4열 x 2행 (x = 533 / 724 / 915 / 1106,  y = 237 / 487) ──
-   마우스를 올리면 코랄 테두리가 나타난다. 선택된 칸(.is-selected)도 같은 테두리를 유지한다 */
+/* ── 썸네일 8개: 4열 x 2행, 칸 비율 175.5 x 241.8, 간격 15.5px (Figma) ──
+   마우스를 올리면 코랄 테두리. 선택된 칸(.is-selected)도 같은 테두리를 유지한다 */
+.thumbs {
+  /* 남은 높이에 2줄이 들어가는 폭까지만 넓어진다 */
+  width: min(100%, 748.5px * var(--k), (100dvh - var(--header-h) - 230px) * 1.55);
+  justify-self: center;
+  align-self: center;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(8px, 1.2vw, 15.5px * var(--k));
+}
 .thumb {
   display: block;
+  aspect-ratio: 175.5 / 241.8;
   outline: 3px solid transparent;
   transition: outline-color 0.12s ease, transform 0.12s ease;
 }
 .thumb:hover,
 .thumb.is-selected { outline-color: var(--coral); }   /* .is-selected : JS 가 선택 시 붙이는 클래스 */
 .thumb:active { transform: scale(0.97); }
-[data-photo="1"] { left: 533px;  top: 237px; }
-[data-photo="2"] { left: 724px;  top: 237px; }
-[data-photo="3"] { left: 915px;  top: 237px; }
-[data-photo="4"] { left: 1106px; top: 237px; }
-[data-photo="5"] { left: 533px;  top: 487px; }
-[data-photo="6"] { left: 724px;  top: 487px; }
-[data-photo="7"] { left: 915px;  top: 487px; }
-[data-photo="8"] { left: 1106px; top: 487px; }
+
+
+/* ── 세로 화면 / 좁은 화면: 한 줄로 쌓기 ── */
+@media (orientation: portrait), (max-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: "title" "board" "main" "cta";
+    justify-items: center;
+  }
+  .board { --board-h: min(626px * var(--k), 38dvh, (100vw - var(--gutter) * 2) * 626 / 429); }
+  /* 썸네일 2줄 높이 = 폭 x 0.69. 보드·제목·버튼을 빼고 남은 높이에 맞춘다 */
+  .thumbs { width: min(100%, 748.5px * var(--k), (62dvh - var(--header-h) - 230px) / 0.69); }
+  .cta { justify-self: center; }
+}

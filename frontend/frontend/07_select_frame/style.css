@@ -1,112 +1,74 @@
 /* =====================================================================
-   07 프레임 선택  (Figma 1:304  Sub_프레임 선택)
-   구성: (왼쪽) 미리보기 보드 / (오른쪽) 제목 + 옵션 4묶음(Logo, Photo Color, Special Frame, Frame) / 안내 문구 / NEXT
+   07 프레임 선택  (Figma 40:560  customFrame)
+   구성: 미리보기 보드 / 제목 + 옵션 4묶음(Logo, Photo Color, Special Frame, Frame) / 선택 완료
+   · 가로 화면: 보드 왼쪽, 나머지 오른쪽   · 세로 화면: 제목 → 보드 → 옵션 → 버튼
    ===================================================================== */
 
-/* 제목: 오른쪽 옵션 영역 위 (x=726, 폭 400) 가운데 정렬 */
-.title { left: 726px; width: 400px; top: 101px; font-size: 40px; line-height: 54px; }
-
-/* ── 왼쪽 미리보기 보드: 429 x 626 흰 종이 ── */
-.board {
-  position: absolute;
-  left: 77px; top: 139px;
-  width: 429px; height: 626px;
-  background: var(--white);
-  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+/* ── 2단 배치 (06 과 같은 틀) ── */
+.split {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "board title"
+    "board main"
+    "board cta";
+  column-gap: clamp(24px, 5vw, 72px);
+  row-gap: clamp(12px, 2.5dvh, 28px);
+  align-items: start;
+  justify-content: stretch;
 }
-[data-slot] { width: 175.5px; height: 241.8px; }       /* 사진 자리 4칸 */
-[data-slot="1"] { left: 108.2px; top: 233.4px; }
-[data-slot="2"] { left: 299.3px; top: 233.4px; }
-[data-slot="3"] { left: 108.2px; top: 483px; }
-[data-slot="4"] { left: 299.3px; top: 483px; }
+.title   { grid-area: title; }
+.board   { grid-area: board; overflow: hidden; }       /* 이 화면 보드는 그림자 없음. script.js 가 canvas 를 넣는다 */
+.options { grid-area: main; }
+.cta     { grid-area: cta; justify-self: end; }
 
-/* ── 오른쪽 옵션 묶음의 제목글자(Logo / Photo Color / Special Frame / Frame): 30px 코랄 ── */
-.label {
-  position: absolute;
-  left: 592px;
-  font-size: 30px;
-  line-height: normal;
-  white-space: nowrap;
-  color: var(--coral);
-}
-[data-label="logo"]    { top: 154px; }
-[data-label="color"]   { top: 296px; }
-[data-label="special"] { top: 448px; }
-[data-label="frame"]   { top: 608px; }
-
-/* "Special Frame" 옆의 작은 회색 설명 */
-.desc {
-  position: absolute;
-  left: 801px; top: 463px;
-  font-size: 15px;
-  letter-spacing: -0.75px;
-  white-space: nowrap;
-  color: #a9a9a9;
+/* ── 옵션 4묶음: 위아래로 쌓고, 남는 높이는 고르게 나눈다 ── */
+.options {
+  --sw: clamp(52px, 8dvh, 70px * var(--k));                       /* 선택 원 지름 (Figma 70px) */
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: clamp(12px, 2.5dvh, 30px);
 }
 
-/* 하단 안내 문구 (회색, 가로 가운데) */
-.note {
-  position: absolute;
-  left: 0; width: 100%;
-  top: 800px;
-  text-align: center;
-  font-size: 30px;
-  white-space: nowrap;
-  color: #a9a9a9;
-}
+/* 묶음 제목 (Logo / Photo Color / Special Frame / Frame): 최대 25px */
+.label { font-size: clamp(18px, 2.8dvh, 25px * var(--k)); line-height: 1.3; margin-bottom: clamp(8px, 1.6dvh, 14px); }
 
-/* 이 화면의 NEXT 는 다른 화면보다 14px 아래 (공통은 y=783) */
-.nav-next { top: 797px; }
+/* 원 줄: 칸이 모자라면 다음 줄로 넘어간다 (Figma 원 사이 간격 약 25px) */
+.swatches { display: flex; flex-wrap: wrap; gap: clamp(14px, 2.8dvh, 25px); }
 
-/* ── 선택 원(.sw): 지름 88px, 1px 검정 테두리, 아래쪽 그림자. 마우스를 올리면 살짝 커진다 ── */
+/* ── 선택 원(.sw). 안의 그림은 테두리·그림자 포함 78/70 배 크기라 좌우로 살짝 나온다 ── */
 .sw {
-  position: absolute;
+  position: relative;
+  flex: none;
   display: block;
-  width: 88px; height: 88px;
+  width: var(--sw); height: var(--sw);
   border-radius: 50%;
-  border: 1px solid #000;
-  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
-  background: var(--white);
   transition: transform 0.12s ease;
+}
+.sw img {
+  position: absolute;
+  left: calc(var(--sw) * -4 / 70); top: 0;
+  width: calc(var(--sw) * 78 / 70); height: calc(var(--sw) * 78 / 70);
+  display: block; max-width: none;
 }
 .sw:hover  { transform: scale(1.06); }
 .sw:active { transform: scale(0.96); }
 /* 선택된 원(JS 가 .is-selected 를 붙임): 코랄 링으로 표시 */
 .sw.is-selected { outline: 3px solid var(--coral); outline-offset: 3px; }
 
-/* 이미지(SVG)가 들어가는 원(.s-img)은 SVG 자체에 테두리와 그림자가 포함돼 있다 (96 x 96, 왼쪽으로 4px 나옴) */
-.sw.s-img { border: 0; box-shadow: none; background: none; border-radius: 0; }
-.sw.s-img img { position: absolute; left: -4px; top: 0; width: 96px; height: 96px; display: block; max-width: none; }
 
-/* ── 원 위치 (data-value 로 선택). 같은 줄은 y 가 같고, 일부는 Figma 원본이 1~3px 어긋나 있어 그대로 옮겼다 ── */
-/* ① Logo 줄 y=203 */
-[data-value="logo-1"] { left: 592px; top: 203px; }
-[data-value="logo-2"] { left: 703px; top: 203px; }
-[data-value="logo-3"] { left: 818px; top: 203px; }
-/* ② Photo Color 줄 y=342 */
-[data-value="rainbow"] { left: 592px; top: 342px; }
-[data-value="bw"]      { left: 703px; top: 342px; }
-/* ③ Special Frame 줄 y=497 (마지막만 496) */
-[data-value="special-1"] { left: 592px;  top: 497px; }
-[data-value="special-2"] { left: 703px;  top: 497px; }
-[data-value="special-3"] { left: 815px;  top: 497px; }
-[data-value="special-4"] { left: 933px;  top: 497px; }
-[data-value="special-5"] { left: 1051px; top: 497px; }
-[data-value="special-6"] { left: 1169px; top: 496px; }
-/* ④ Frame 줄 y=660 (첫 번째만 657) */
-[data-value="frame-white"]  { left: 592px;  top: 657px; }
-[data-value="frame-black"]  { left: 704px;  top: 660px; }
-[data-value="frame-blue"]   { left: 815px;  top: 660px; }
-[data-value="frame-pink"]   { left: 927px;  top: 660px; }
-[data-value="frame-shingu"] { left: 1039px; top: 660px; }
-
-/* ── CSS 로 그리는 원의 색 (Figma 에서 추출한 값) ── */
-/* 무지개: 빨강→주황→노랑→초록→파랑→보라. 퍼센트는 Figma 그라디언트 선 길이(83px) 기준으로 환산한 값 */
-[data-value="rainbow"] { background: linear-gradient(150deg, #ff0000 16.1%, #ff8800 29.9%, #ffdd00 43.7%, #2aff00 57.5%, #0048ff 71.3%, #bb00ff 85.1%); }
-/* 흑백: 왼쪽 위 흰색 / 오른쪽 아래 검정, 대각선으로 반반 */
-[data-value="bw"]      { background: linear-gradient(149.5deg, #ffffff 50%, #000000 50%); }
-/* 단색 프레임 */
-[data-value="frame-white"] { background: #ffffff; }
-[data-value="frame-black"] { background: #000000; }
-[data-value="frame-blue"]  { background: #2a84c9; }
-[data-value="frame-pink"]  { background: #ebaaaa; }
+/* ── 세로 화면 / 좁은 화면: 한 줄로 쌓기 ── */
+@media (orientation: portrait), (max-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: "title" "board" "main" "cta";
+    justify-items: center;
+  }
+  .board { --board-h: min(626px * var(--k), 42dvh, (100vw - var(--gutter) * 2) * 626 / 429); }
+  .options { width: min(100%, 560px); align-self: auto; }
+  .cta { justify-self: center; }
+}

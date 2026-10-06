@@ -1,15 +1,58 @@
 /* =====================================================================
-   04 촬영 시작 카운트다운  (Figma 1:212  Sub_사진 촬영 시작)
-   "START" (큰 글자) 아래에 "in" (중간 글자) 과 남은 초 숫자(진한 색)가 나란히 놓인다
+   04 촬영 시작 카운트다운  (Figma 40:490  countingTime)
+   구성: 안내 제목 → 얇은 원 안의 큰 숫자
    ===================================================================== */
 
-/* 세 글자 모두 Special Gothic Expanded One. white-space:pre 는 글자 앞뒤 공백(" 5", "in ")을 유지하기 위함 */
-.start, .in, .five {
-  position: absolute;
-  font-family: var(--font-wide);
-  line-height: normal;
-  white-space: pre;
+/* 제목 아래 원까지 Figma 간격(약 70px) — 원이 화면 가운데쯤 오도록 아래쪽에 같은 만큼 여백 */
+.content { gap: clamp(24px, 8dvh, 70px); padding-bottom: calc(var(--pad-y) + var(--title-size) * 1.3); }
+
+/* 원(Figma 288)과 숫자(200px)를 같은 비율로 함께 줄인다 */
+.dial {
+  --d: clamp(180px, min(33dvh, 60vw), 288px * var(--k));
+  position: relative;
+  width: var(--d); height: var(--d);
+  display: flex; align-items: center; justify-content: center;
 }
-.start { left: 394px; top: 268px; font-size: 140px; color: var(--coral); }   /* START */
-.in    { left: 541px; top: 476px; font-size: 90px;  color: var(--coral); }   /* in    */
-.five  { left: 653px; top: 427px; font-size: 140px; color: var(--ink); }     /* 남은 초 (진한 갈색) */
+.ring { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* 남은 초: Righteous 코랄. script.js 가 넣는 앞 공백(" 5")은 white-space:normal 로 무시된다 */
+.count {
+  position: relative;
+  font-family: var(--font-num);
+  font-size: calc(var(--d) * 200 / 288);
+  line-height: 1;
+  color: var(--coral);
+}
+
+/* 숫자가 바뀔 때마다: 원이 '퍽' 하고 커졌다 돌아오고, 물결 원 3개가 밖으로 파바박 퍼진다 */
+.ripple {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--coral);
+  opacity: 0;
+  pointer-events: none;
+}
+.dial.tick .ring  { animation: ring-burst .6s cubic-bezier(.2, 1.6, .4, 1); }
+.dial.tick .count { animation: count-pop .5s ease-out; }
+.dial.tick .ripple { animation: ripple-out .9s ease-out forwards; }
+.dial.tick .ripple:nth-of-type(2) { animation-delay: .08s; border-color: #f4978e; }
+.dial.tick .ripple:nth-of-type(3) { animation-delay: .16s; border-color: #fbc4ab; }
+
+@keyframes ring-burst {
+  0%   { scale: 1; }
+  25%  { scale: 1.15; }
+  100% { scale: 1; }
+}
+@keyframes ripple-out {
+  0%   { scale: 1;   opacity: .9; border-width: 4px; }
+  100% { scale: 1.7; opacity: 0;  border-width: 1px; }
+}
+@keyframes count-pop {
+  0%   { scale: .6; opacity: 0; }
+  60%  { scale: 1.08; opacity: 1; }
+  100% { scale: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dial.tick .ring, .dial.tick .count, .dial.tick .ripple { animation: none; }
+}
