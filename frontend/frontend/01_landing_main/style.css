@@ -1,12 +1,5 @@
-/* =====================================================================
-   01 메인  (Figma 40:134  main)
-   공통 스타일(../common.css) 위에 얹는 이 화면 전용 스타일.
-   구성: PHOTOBOOTH 배너(+ 가운데 PIK-CHA! 로고) → "시작하기" 버튼
-   ===================================================================== */
-
 .content { gap: clamp(20px, 4.4dvh, 39px * var(--k)); }
 
-/* 배너(1200 x 639): 폭은 창 폭, 높이는 버튼 자리를 뺀 남은 높이 중 작은 쪽에 맞춘다 */
 .hero {
   position: relative;
   width: min(1200px * var(--k), 100%, (100dvh - var(--cta-h) - var(--pad-y) * 2 - 40px) * 1200 / 639);
@@ -14,5 +7,4 @@
 }
 .stack { display: block; width: 100%; height: 100%; }
 
-/* 로고(922 x 189)는 배너 기준 % 위치 (Figma: 배너 안 x=139, y=205) */
 .logo { position: absolute; left: 11.58%; top: 32.08%; width: 76.83%; height: auto; display: block; }

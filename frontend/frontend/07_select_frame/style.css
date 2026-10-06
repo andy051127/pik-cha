@@ -57,7 +57,7 @@
 .sw:hover  { transform: scale(1.06); }
 .sw:active { transform: scale(0.96); }
 /* 선택된 원(JS 가 .is-selected 를 붙임): 코랄 링으로 표시 */
-.sw.is-selected { outline: 3px solid var(--coral); outline-offset: 3px; }
+.sw.is-selected { outline: 3px solid #000000; outline-offset: 3px; }
 
 
 /* ── 세로 화면 / 좁은 화면: 한 줄로 쌓기 ── */

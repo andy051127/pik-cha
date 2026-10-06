@@ -9,8 +9,6 @@
 </head>
 <body>
   <!--
-    02 순번 입력 (Figma 40:516 waitingNum)  흐름: 01 메인 → [여기] → 03 수량 선택
-    JS 연결 지점
       · #keypad            : 숫자 키패드 전체
       · [data-key]         : 각 키의 값 "0"~"9", "clear"(지우기: 전체 삭제), "backspace"(삭제: 한 글자)
       · #number-line       : 입력한 순번이 표시되는 자리 (Figma 시안에는 없는 요소. 안내 문구와 키패드 사이)
@@ -40,9 +38,9 @@
         <a class="key" data-key="7" href="#">7</a>
         <a class="key" data-key="8" href="#">8</a>
         <a class="key" data-key="9" href="#">9</a>
-        <a class="key key-text" data-key="clear" href="#">지우기</a>
+        <a class="key key-text" data-key="clear" href="#">삭제</a>
         <a class="key" data-key="0" href="#">0</a>
-        <a class="key key-text" data-key="backspace" href="#">삭제</a>
+        <a class="key key-text" data-key="backspace" href="#">지우기</a>
       </div>
 
       <a class="cta disabled" id="nav-next" href="#">확인하고 계속하기</a>

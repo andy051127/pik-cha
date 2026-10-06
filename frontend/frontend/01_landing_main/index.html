@@ -4,22 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PIK-CHA! - Main</title>
-  <!-- 공통 스타일 → 이 화면 전용 스타일 순서로 불러온다 -->
+  <!-- 공통 스타일 -> 이 화면 전용 스타일 순서 -->
   <link rel="stylesheet" href="../common.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!--
-    01 메인 (Figma 40:134 main)  흐름: [여기] → 02 순번 입력
-    JS 연결 지점
-      · #waiting-register-btn : "시작하기" 버튼 (02 화면으로 이동하는 링크)
-  -->
   <main class="stage" data-screen="landing">
     <div class="content">
-      <!-- 화면 읽기 프로그램용 제목 (눈에는 보이지 않음) -->
+      <!-- 화면 읽기 프로그램용 제목 -->
       <h1 class="sr-only">PHOTOBOOTH PIK-CHA!</h1>
 
-      <!-- 그라디언트로 겹쳐 쌓인 PHOTOBOOTH 배너 + 가운데 흰색 PIK-CHA! 로고 (둘 다 SVG) -->
+      <!-- 그라디언트로 PHOTOBOOTH 배너 + 흰색 PIK-CHA! 로고 -->
       <div class="hero">
         <img class="stack" src="assets/photobooth-stack.svg" alt="" width="1200" height="639">
         <img class="logo" src="assets/pikcha-title.svg" alt="" width="922" height="189">
