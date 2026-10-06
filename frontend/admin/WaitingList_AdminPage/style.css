@@ -1,0 +1,112 @@
+/* =====================================================================
+   관리자 메인  (Figma 1:605  WaitingList_AdminPage)
+   구성: 코랄 배너(PHOTOBOOTH) → 흰 상단바(로고 · 등록페이지 · 관리자) → 하단 메뉴 카드 3개
+
+   ※ 이 화면만 "가로로 늘어나는" 방식이다.
+     창이 가로로 넓으면 세로는 창 높이에 맞추고 가로는 창 폭 전체를 채운다.
+     (배너/상단바/카드가 양옆 여백 없이 꽉 참. 창이 좁으면 다른 화면처럼 폭에 맞춰 축소)
+   ===================================================================== */
+
+/* ── 무대(.stage) 재정의: 가로를 창 폭으로 ─────────────────────────── */
+.stage {
+  left: 0;
+  width: calc(100vw / var(--fit));          /* 창 폭(vw)을 디자인 px 단위로 환산 */
+  transform-origin: top left;
+  transform: scale(var(--fit));
+}
+
+/* ── 코랄 배너: 창 폭 100%, 높이 526 ── */
+.banner { position: absolute; left: 0; top: 0; width: 100%; height: 526px; background: var(--coral); }
+.banner-title {                                  /* 가운데 큰 흰 글자 128px */
+  position: absolute;
+  left: 0; width: 100%; top: 210px;
+  text-align: center;
+  font: 400 128px/normal "Special Gothic Expanded One", var(--font);
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* ── 흰 상단바: 높이 63 (배너 위에 겹쳐 있음) ── */
+.top { position: absolute; left: 0; top: 0; width: 100%; height: 63px; background: #fff; }
+.top .logo { position: absolute; left: 39px; top: 18px; width: 79px; height: 28.5px; display: block; }   /* 코랄색 로고 */
+
+/* "등록페이지" 링크: 관리자 버튼의 왼쪽에 붙는다 (오른쪽 기준 위치) */
+.reg {
+  position: absolute;
+  right: 210px; top: 22px;
+  width: 81px;
+  text-align: center;
+  font-size: 16px; font-weight: 500; letter-spacing: -0.9px; line-height: 14px;
+  color: var(--coral);
+}
+.reg:hover { opacity: 0.7; }
+
+/* "관리자" 알약 버튼: 148 x 40, 오른쪽 끝에서 40px 안쪽 */
+.admin {
+  position: absolute;
+  right: 40px; top: 11px;
+  width: 148px; height: 40px;
+  border-radius: 50px;
+  background: var(--coral);
+  color: #fff;
+  transition: filter 0.12s ease;
+}
+.admin:hover { filter: brightness(0.94); }
+.avatar {                                        /* 왼쪽 흰 동그라미 30px 안의 이모지 */
+  position: absolute;
+  left: 5px; top: 5px;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+  font-size: 20px; line-height: 30px;
+  text-align: center;
+}
+.admin-name {                                    /* "관리자" 글자 (아이콘 자리만큼 오른쪽으로 비켜 가운데) */
+  position: absolute;
+  left: 0; width: 148px; top: 12px;
+  padding-left: 22px;
+  text-align: center;
+  font-size: 16px; line-height: 14px;
+}
+
+/* ── 하단 메뉴 카드 3개 ──
+   .cards : 좌우 여백 39/40, 카드 간격 51, 높이 280, y=566. 카드 3개가 남는 폭을 똑같이 나눠 가진다(flex:1) */
+.cards { position: absolute; left: 39px; right: 40px; top: 566px; height: 280px; display: flex; gap: 51px; }
+.card {
+  position: relative;
+  flex: 1;
+  height: 280px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  color: #000;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18); }   /* 마우스를 올리면 살짝 떠오른다 */
+.card .head {                                    /* 맨 위 26px 제목 띠 ("01 | Dashboard" 등) */
+  position: absolute;
+  left: -2px; top: -2px;
+  width: calc(100% + 4px); height: 26px;         /* 카드 테두리 2px 까지 덮는다 */
+  padding: 2px 0 0 19px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 16px; line-height: 20px;
+}
+.card .big {                                     /* 큰 제목 40px 굵게 */
+  position: absolute;
+  left: 25px; top: 149px;                        /* 페이지 기준 y=717 (Figma 글자 위치 보정) */
+  font-size: 40px; font-weight: 700; line-height: normal;
+  white-space: nowrap;
+}
+.card .sub {                                     /* 작은 부제 20px 회색 */
+  position: absolute;
+  left: 25px; top: 209px;                        /* 페이지 기준 y=777 */
+  font-size: 20px; line-height: normal;
+  color: var(--gray);
+  white-space: nowrap;
+}
+
+/* ── 01 Dashboard 카드만 진한 배경(.dark): 제목 띠는 흰색, 글자는 흰색 ── */
+.card.dark { background: var(--ink); color: #fff; }
+.card.dark .head { background: #fff; color: var(--ink); border: 2px solid var(--ink); }
+.card.dark .sub { color: #fff; }

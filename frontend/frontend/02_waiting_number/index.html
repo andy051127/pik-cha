@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1342">
+  <title>PIK-CHA! - 순번 입력</title>
+  <link rel="stylesheet" href="../common.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    02 순번 입력 (Figma 1:241)  흐름: 01 메인 → [여기] → 03 수량 선택
+    JS 연결 지점
+      · #keypad            : 숫자 키패드 전체
+      · [data-key]         : 각 키의 값 "0"~"9" 또는 "backspace" (눌렀을 때 값을 읽는다)
+      · #number-line       : 입력한 순번이 표시될 자리의 밑줄. 숫자는 이 선 위(왼쪽 정렬)에 그리면 된다
+      · #nav-back / #nav-next : 이동 버튼 (순번이 비어 있으면 NEXT 에 .disabled 를 붙인다)
+  -->
+  <main class="stage" data-screen="waiting-number">
+    <!-- 상단 코랄 바 + 흰색 로고 -->
+    <div class="top-bar">
+      <img class="logo" src="../assets/logo-white.svg" alt="PIK-CHA!">
+    </div>
+
+    <h1 class="title">웨이팅을 등록해 부여받은 순번을 입력해 주세요.</h1>
+
+    <!-- 입력된 순번이 표시되는 자리의 밑줄 (582 x 2) -->
+    <div class="divider" id="number-line"></div>
+    <p id="error-msg" role="alert" hidden style="position:absolute;left:124px;top:565px;width:582px;color:#b04a3a;font-size:20px"></p>
+
+    <!-- 숫자 키패드: 3열 x 4행. 마지막 줄은 0 과 지우기(←) -->
+    <div class="keypad" id="keypad">
+      <a class="key" data-key="1" href="#">1</a>
+      <a class="key" data-key="2" href="#">2</a>
+      <a class="key" data-key="3" href="#">3</a>
+      <a class="key" data-key="4" href="#">4</a>
+      <a class="key" data-key="5" href="#">5</a>
+      <a class="key" data-key="6" href="#">6</a>
+      <a class="key" data-key="7" href="#">7</a>
+      <a class="key" data-key="8" href="#">8</a>
+      <a class="key" data-key="9" href="#">9</a>
+      <a class="key" data-key="0" href="#">0</a>
+      <!-- 지우기 키: 화살표(←) 아이콘이 그려진 SVG -->
+      <a class="back" data-key="backspace" href="#" aria-label="지우기"><img src="assets/key-backspace.svg" alt="" width="231" height="124"></a>
+    </div>
+
+    <!-- 하단 이동 버튼 -->
+    <a class="nav-btn nav-back" id="nav-back" href="../01_landing_main/index.html">BACK</a>
+    <a class="nav-btn nav-next" id="nav-next" href="#">NEXT</a>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

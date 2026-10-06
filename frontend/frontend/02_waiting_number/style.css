@@ -1,0 +1,57 @@
+/* =====================================================================
+   02 순번 입력  (Figma 1:241  Sub_사진 촬영 시작)
+   구성: 안내 제목 → (왼쪽) 입력 밑줄 → (오른쪽) 숫자 키패드 → BACK/NEXT
+   ===================================================================== */
+
+/* 안내 문구: 40px 굵게, 가로 가운데 */
+.title { top: 151px; font-size: 40px; line-height: 55px; }
+
+/* 입력한 순번이 표시될 자리의 밑줄 (x=124, y=540, 582 x 2) */
+.divider {
+  position: absolute;
+  left: 124px; top: 540px;
+  width: 582px; height: 2px;
+  background: var(--coral);
+}
+
+/* ── 숫자 키: 104 x 104 흰 둥근 사각형, Righteous 80px 코랄 숫자 ──
+   (배경이 흰색이라 평소엔 숫자만 보이고, 누르면 코랄로 채워진다) */
+.key {
+  position: absolute;
+  width: 104px; height: 104px;
+  border-radius: 20px;
+  background: var(--white);
+  color: var(--coral);
+  font-family: var(--font-num);
+  font-size: 80px;
+  line-height: 104px;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
+}
+.key:hover  { background: #fbe9e5; }                                            /* 마우스를 올리면 연한 분홍 */
+.key:active { background: var(--coral); color: var(--white); transform: scale(0.95); }  /* 누르는 동안 코랄로 채움 */
+
+/* 키 위치: 열 x = 845 / 972 / 1099,  행 y = 270 / 390 / 510 / 630  (data-key 값으로 선택) */
+[data-key="1"] { left: 845px;  top: 270px; }
+[data-key="2"] { left: 972px;  top: 270px; }
+[data-key="3"] { left: 1099px; top: 270px; }
+[data-key="4"] { left: 845px;  top: 390px; }
+[data-key="5"] { left: 972px;  top: 390px; }
+[data-key="6"] { left: 1099px; top: 390px; }
+[data-key="7"] { left: 845px;  top: 510px; }
+[data-key="8"] { left: 972px;  top: 510px; }
+[data-key="9"] { left: 1099px; top: 510px; }
+[data-key="0"] { left: 845px;  top: 630px; }
+
+/* ── 지우기(←) 키: 231 x 124. 아이콘 SVG 안에 흰 배경이 포함돼 있다 ── */
+.back {
+  position: absolute;
+  left: 972px; top: 620px;
+  width: 231px; height: 124px;
+  display: block;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+.back img { display: block; }
+.back:hover  { opacity: 0.7; }
+.back:active { transform: scale(0.95); }

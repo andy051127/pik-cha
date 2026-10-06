@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1342">
+  <title>PIK-CHA! - 사진 수량 선택</title>
+  <link rel="stylesheet" href="../common.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    03 사진 수량 선택 (Figma 1:143)  흐름: 02 순번 입력 → [여기] → 04 촬영 시작
+    JS 연결 지점
+      · #print-count                : 현재 수량 숫자 (시안 값 2, 허용 범위 2~4)
+      · [data-action="decrease"]    : − 버튼 (수량 줄이기)
+      · [data-action="increase"]    : + 버튼 (수량 늘리기)
+      · 범위 끝에 닿으면 해당 버튼에 .disabled 를 붙이면 된다
+  -->
+  <main class="stage" data-screen="number-of-prints">
+    <div class="top-bar">
+      <img class="logo" src="../assets/logo-white.svg" alt="PIK-CHA!">
+    </div>
+
+    <h1 class="title">사진 수량을 선택해 주세요.</h1>
+
+    <!-- 원형 − / 큰 숫자 / 원형 + (기호는 CSS 선으로 그려진다) -->
+    <a class="round minus" data-action="decrease" href="#" aria-label="수량 줄이기"></a>
+    <p class="count" id="print-count">2</p>
+    <a class="round plus" data-action="increase" href="#" aria-label="수량 늘리기"></a>
+
+    <a class="nav-btn nav-back" id="nav-back" href="../02_waiting_number/index.html">BACK</a>
+    <a class="nav-btn nav-next" id="nav-next" href="../04_countdown/index.html">NEXT</a>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1342">
+  <title>PIK-CHA! - 사진 선택</title>
+  <link rel="stylesheet" href="../common.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    06 사진 선택 (Figma 1:101)  흐름: 05 촬영 → [여기] → 07 프레임 선택
+    8장을 찍고, 그중 4장을 골라 왼쪽 4컷 보드를 채우는 화면이다.
+    JS 연결 지점
+      · #board                : 왼쪽 4컷 보드(흰 종이)
+      · [data-slot="1..4"]    : 보드 안의 사진 자리 4칸 (고른 사진을 순서대로 채운다)
+      · [data-photo="1..8"]    : 오른쪽 썸네일 8개 (눌러서 선택). 선택된 칸에는 .is-selected 를 붙인다
+      · #nav-next             : 4장을 다 골랐을 때만 활성화하면 된다 (.disabled 로 막는다)
+  -->
+  <main class="stage" data-screen="review-photo">
+    <div class="top-bar">
+      <img class="logo" src="../assets/logo-white.svg" alt="PIK-CHA!">
+    </div>
+
+    <h1 class="title">사진을 선택해 주세요!</h1>
+
+    <!-- 왼쪽: 4컷 보드(흰 종이) + 사진 자리 4칸 (2열 x 2행) -->
+    <div class="board" id="board"></div>
+    <div class="photo" data-slot="1"></div>
+    <div class="photo" data-slot="2"></div>
+    <div class="photo" data-slot="3"></div>
+    <div class="photo" data-slot="4"></div>
+
+    <!-- 오른쪽: 촬영한 8장의 썸네일 (4열 x 2행). 눌러서 고른다 -->
+    <a class="photo thumb" data-photo="1" href="#" aria-label="사진 1"></a>
+    <a class="photo thumb" data-photo="2" href="#" aria-label="사진 2"></a>
+    <a class="photo thumb" data-photo="3" href="#" aria-label="사진 3"></a>
+    <a class="photo thumb" data-photo="4" href="#" aria-label="사진 4"></a>
+    <a class="photo thumb" data-photo="5" href="#" aria-label="사진 5"></a>
+    <a class="photo thumb" data-photo="6" href="#" aria-label="사진 6"></a>
+    <a class="photo thumb" data-photo="7" href="#" aria-label="사진 7"></a>
+    <a class="photo thumb" data-photo="8" href="#" aria-label="사진 8"></a>
+
+    <!-- 이 화면에는 BACK 이 없다(시안 그대로) -->
+    <a class="nav-btn nav-next" id="nav-next" href="#">NEXT</a>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

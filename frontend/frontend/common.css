@@ -1,0 +1,154 @@
+/* =====================================================================
+   PIK-CHA! 키오스크 공통 스타일  (frontend/common.css)
+   ---------------------------------------------------------------------
+   · 키오스크 화면 8개(01~08)가 모두 이 파일을 먼저 불러온 뒤, 각 화면 폴더의
+     style.css 로 화면 고유 스타일을 덧씌운다.
+   · 순수 CSS 입니다. (JS 없음)  화면 이동은 <a href>, 반응은 :hover/:active.
+   · 디자인 기준 캔버스는 Figma 프레임 크기 1342 x 877 px.
+     모든 요소는 이 캔버스 안에서 Figma 좌표 그대로 absolute 배치되고,
+     캔버스 전체가 창 크기에 맞춰 통째로 확대/축소된다(아래 2번).
+
+   [JS 를 붙일 때 참고]
+   · 상태 표시는 클래스로 한다:  .is-selected(선택됨)  .disabled(비활성)
+   · 화면/요소 식별은 id 와 data-* 속성을 쓴다.  (각 화면 HTML 상단 주석 참고)
+   · 위치/크기를 JS 에서 바꾸지 말 것. 좌표는 CSS 에만 있다.
+   ===================================================================== */
+
+/* 폰트: Google Fonts (인터넷 연결 필요)
+   Noto Sans(영문/숫자) + Noto Sans KR(한글) / Righteous(키패드·숫자) / Special Gothic Expanded One(PHOTOBOOTH·START) */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700&family=Noto+Sans:wght@100;300;400;700&family=Righteous&family=Special+Gothic+Expanded+One&display=swap");
+
+
+/* ── 1. 디자인 토큰(색/폰트/크기) ───────────────────────────────────── */
+:root {
+  --stage-w: 1342px;                 /* 캔버스 가로 */
+  --stage-h: 877px;                  /* 캔버스 세로 */
+
+  --coral: #e16a56;                  /* 브랜드 코랄 (버튼 테두리, 제목, 상단바) */
+  --ink: #332d2b;                    /* 진한 갈색 글자 (START in 5 의 숫자) */
+  --white: #ffffff;
+
+  /* 한글 본문 폰트. Figma 와 줄 높이를 맞추려고 Noto Sans 를 먼저 둔다(한글은 Noto Sans KR 로 대체됨) */
+  --font-ko: "Noto Sans", "Noto Sans KR", sans-serif;
+  --font-en: "Noto Sans", "Noto Sans KR", sans-serif;                 /* BACK / NEXT 등 영문 */
+  --font-num: "Righteous", sans-serif;                                /* 키패드/수량 숫자 */
+  --font-wide: "Special Gothic Expanded One", "Noto Sans KR", sans-serif; /* PHOTOBOOTH / START */
+
+  /* 창에 꽉 차도록 하는 배율. 가로/세로 중 더 작은 쪽에 맞춰 비율 유지.
+     tan(atan2(a, b)) = a / b  → "길이 ÷ 길이 = 단위 없는 숫자" 를 JS 없이 계산하는 방법 */
+  --fit: min(tan(atan2(100vw, 1342px)), tan(atan2(100vh, 877px)));
+}
+
+
+/* ── 2. 기본 리셋 & 무대(.stage) ────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { width: 100%; height: 100%; background: var(--white); overflow: hidden; }
+
+body {
+  font-family: var(--font-ko);
+  /* 키오스크는 글자 선택/이미지 끌기/탭 하이라이트가 나오면 안 된다 */
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+img { -webkit-user-drag: none; }
+
+/* 모든 화면의 "무대". 1342x877 캔버스를 위쪽 가운데 기준으로 --fit 배만큼 확대/축소한다.
+   (화면 안의 모든 요소는 이 무대 안에서 position:absolute 로 배치된다) */
+.stage {
+  position: fixed;
+  left: 50%; top: 0;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  overflow: hidden;
+  background: var(--white);
+  color: var(--coral);
+  transform-origin: top center;
+  transform: translateX(-50%) scale(var(--fit, 1));
+}
+
+/* 상단 코랄 바(.top-bar)가 있는 화면은, 창이 가로로 넓을 때도 바가 창 폭 전체로 이어지게 한다 */
+body:has(.top-bar)::before {
+  content: "";
+  position: fixed;
+  left: 0; right: 0; top: 0;
+  height: calc(63px * var(--fit, 1));
+  background: var(--coral);
+}
+
+/* 키보드로 이동할 때만 보이는 포커스 링 (마우스/터치에는 나타나지 않음) */
+a:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
+[hidden] { display: none !important; }
+
+
+/* ── 3. 상단 코랄 바 + 흰색 로고 (01 메인을 제외한 모든 화면) ───────── */
+.top-bar {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 63px;
+  background: var(--coral);
+}
+.top-bar .logo {                     /* 흰색 PIK-CHA! 로고 142 x 51 */
+  position: absolute;
+  left: 30px; top: 6px;
+  width: 142px; height: 51px;
+  display: block;
+}
+
+
+/* ── 4. 공통 텍스트 / 도형 ──────────────────────────────────────────── */
+/* 화면 제목: 가로 가운데 정렬 코랄 굵은 글씨. 세로 위치/크기는 각 화면 style.css 에서 지정 */
+.title {
+  position: absolute;
+  left: 0; width: 100%;
+  text-align: center;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 사진이 들어갈 자리를 나타내는 회색(#d9d9d9) 박스. 크기/위치는 화면별로 지정 */
+.photo { position: absolute; background: #d9d9d9; }
+
+/* 화면 전체를 누르면 다음 화면으로 넘어가는 투명 링크 (상단바 아래 전체 영역).
+   04 카운트다운 / 05 촬영 / 08 출력 화면에서 사용. 나중에 JS 가 자동 이동을 맡으면 지워도 된다 */
+.goto { position: absolute; left: 0; top: 63px; right: 0; bottom: 0; }
+
+
+/* ── 5. BACK / NEXT 공통 버튼 ───────────────────────────────────────── */
+/* 167 x 48 알약 모양, 하단 y=783. 글자 옆 삼각형은 ::after (BACK 은 ◀, NEXT 는 ▶) */
+.nav-btn {
+  position: absolute;
+  top: 783px;
+  width: 167px; height: 48px;
+  border: 1px solid var(--coral);
+  border-radius: 31px;
+  color: var(--coral);
+  font-family: var(--font-en);
+  font-size: 28px;
+  line-height: 46px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.nav-btn:hover  { background: var(--coral); color: var(--white); }   /* 마우스를 올리면 코랄로 채움 */
+.nav-btn:active { transform: scale(0.97); }                            /* 누르는 순간 살짝 작아짐 */
+.nav-btn::after {                                                      /* 삼각형 공통 */
+  content: "";
+  position: absolute;
+  top: 16px;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+.nav-back { left: 56px;   padding-left: 63px; }
+.nav-back::after { left: 31px;  border-right: 12px solid currentColor; }   /* ◀ */
+.nav-next { left: 1132px; padding-left: 36px; }
+.nav-next::after { left: 117px; border-left: 12px solid currentColor; }    /* ▶ */
+
+/* NEXT 의 검정 버전 (07 프레임 선택 화면만 검정) */
+.nav-black { border-color: #000; color: #000; }
+.nav-black:hover { background: #000; color: var(--white); }
+
+
+/* ── 6. 상태 클래스 (JS 에서 켜고 끈다) ────────────────────────────── */
+/* 비활성: 누를 수 없고 흐리게 (예: 사진을 고르기 전의 NEXT) */
+.disabled { pointer-events: none; opacity: 0.3; }

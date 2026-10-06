@@ -1,0 +1,15 @@
+/* =====================================================================
+   04 촬영 시작 카운트다운  (Figma 1:212  Sub_사진 촬영 시작)
+   "START" (큰 글자) 아래에 "in" (중간 글자) 과 남은 초 숫자(진한 색)가 나란히 놓인다
+   ===================================================================== */
+
+/* 세 글자 모두 Special Gothic Expanded One. white-space:pre 는 글자 앞뒤 공백(" 5", "in ")을 유지하기 위함 */
+.start, .in, .five {
+  position: absolute;
+  font-family: var(--font-wide);
+  line-height: normal;
+  white-space: pre;
+}
+.start { left: 394px; top: 268px; font-size: 140px; color: var(--coral); }   /* START */
+.in    { left: 541px; top: 476px; font-size: 90px;  color: var(--coral); }   /* in    */
+.five  { left: 653px; top: 427px; font-size: 140px; color: var(--ink); }     /* 남은 초 (진한 갈색) */

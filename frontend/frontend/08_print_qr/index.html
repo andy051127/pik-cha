@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1342">
+  <title>PIK-CHA! - 사진 출력</title>
+  <link rel="stylesheet" href="../common.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    08 사진 출력 + 다운로드 QR (Figma 1:71)  흐름: 07 프레임 선택 → [여기] → 01 메인(처음으로)
+    JS 연결 지점
+      · #download-qr  : 사진 원본 다운로드용 QR 이미지. 지금은 샘플 PNG(assets/qr-sample.png). 실제 QR 로 src 를 교체한다
+      · #print-timer  : 남은 초 카운트(시안 값 30). 0 이 되면 01 로 돌아간다
+      · .goto         : 화면 전체 투명 링크. 자동 이동을 구현하면 지운다
+  -->
+  <main class="stage" data-screen="print-qr">
+    <div class="top-bar">
+      <img class="logo" src="../assets/logo-white.svg" alt="PIK-CHA!">
+    </div>
+
+    <h1 class="prompt">사진을 출력 중이니 잠시만 기다려주세요!</h1>
+    <img class="qr" id="download-qr" src="../assets/qr-sample.png" alt="다운로드 QR 코드">
+    <p class="hint">QR코드를 촬영하여 사진을 저장해 보세요!</p>
+    <p class="count" id="print-timer">30</p>
+
+    <!-- 임시: 화면을 누르면 처음(01 메인)으로 -->
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

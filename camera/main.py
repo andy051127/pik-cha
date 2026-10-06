@@ -30,6 +30,11 @@ def main():
     # 3. 세션 열기
     sdk.open_session(camera)
 
+    # ★ SaveTo=Host 전환 (app.py/edsdk_worker.py와 동일 - 안 하면 DirItemCreated 대신
+    #   VolumeInfoChanged만 와서 아래 다운로드 이벤트 체크가 항상 실패함)
+    sdk.set_capacity(camera)
+    sdk.set_save_to_host(camera)
+
     # 4. 이벤트 콜백 등록
     events.register_event_handlers(camera)
 

@@ -98,6 +98,12 @@ class EdsdkWorker:
                 raise RuntimeError("카메라를 찾을 수 없습니다 (케이블/전원/PC연결모드 확인)")
 
             sdk.open_session(camera)
+            # ★ SaveTo=Host로 전환 - 안 하면 카메라가 SD카드에만 저장하고
+            #   DirItemCreated/RequestTransfer 대신 VolumeInfoChanged(0x201)만 쏴서
+            #   events.py의 다운로드 콜백이 영영 안 걸림 (실카메라 테스트로 확인된 문제).
+            #   set_capacity가 SaveTo=Host보다 먼저 와야 함 (sdk.py 주석 참고).
+            sdk.set_capacity(camera)
+            sdk.set_save_to_host(camera)
             events.register_event_handlers(camera)
 
             self.camera = camera

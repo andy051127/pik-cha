@@ -15,7 +15,6 @@ from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import asyncio
-import base64
 import os
 import shutil
 import threading
@@ -161,13 +160,18 @@ async def websocket_liveview(websocket: WebSocket):
             if camera is not None:
                 try:
                     frame = worker.get_liveview_frame()
+                    # ★ base64+JSON 대신 바이너리 프레임으로 그대로 전송 - base64가 크기를
+                    #   33% 불리고 JSON 직렬화/파싱 비용도 붙어서, 프레임레이트 저하의 한
+                    #   원인이었음. 프론트는 text(JSON 상태메시지)와 구분해서 받아야 함.
                     if frame:
-                        frame_b64 = base64.b64encode(frame).decode()
-                        await websocket.send_json({"type": "frame", "data": frame_b64})
+                        await websocket.send_bytes(frame)
                 except Exception:
                     pass
 
-            await asyncio.sleep(0.1)  # ~10fps
+            # ★ 고정 지연(이전엔 0.1초) 제거 - 프레임 가져오는 자체가 느리면 그 위에
+            #   인위적으로 더 느려지기만 했음. sleep(0)은 지연 없이 이벤트 루프에
+            #   제어권만 양보해서, 실제로 낼 수 있는 최대 속도로 자연스럽게 돎.
+            await asyncio.sleep(0)
 
     except Exception as e:
         print(f"❌ WebSocket 에러: {e}")
