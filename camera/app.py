@@ -159,7 +159,7 @@ async def websocket_liveview(websocket: WebSocket):
             #   대기했다가 처리되므로 화면이 살짝씩 멈칫할 수는 있지만 안전함)
             if camera is not None:
                 try:
-                    frame = worker.get_liveview_frame()
+                    frame = await asyncio.to_thread(worker.get_liveview_frame)
                     # ★ base64+JSON 대신 바이너리 프레임으로 그대로 전송 - base64가 크기를
                     #   33% 불리고 JSON 직렬화/파싱 비용도 붙어서, 프레임레이트 저하의 한
                     #   원인이었음. 프론트는 text(JSON 상태메시지)와 구분해서 받아야 함.
