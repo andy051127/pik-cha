@@ -1,112 +1,357 @@
 /* =====================================================================
-   관리자 메인  (Figma 1:605  WaitingList_AdminPage)
-   구성: 코랄 배너(PHOTOBOOTH) → 흰 상단바(로고 · 등록페이지 · 관리자) → 하단 메뉴 카드 3개
-
-   ※ 이 화면만 "가로로 늘어나는" 방식이다.
-     창이 가로로 넓으면 세로는 창 높이에 맞추고 가로는 창 폭 전체를 채운다.
-     (배너/상단바/카드가 양옆 여백 없이 꽉 참. 창이 좁으면 다른 화면처럼 폭에 맞춰 축소)
+   관리자 화면  (Figma 6:219  WaitingList_AdminPage 프레임 3개)
+   구성: 왼쪽 핸드폰(432 x 877) + 오른쪽 브라우저 창 영역(910 x 877)
+   · 좌표 · 색 · 그림자 · 블러는 Figma 에서 내보낸 SVG 값 그대로다.
+   · 좌표는 position:absolute (admin.css 규칙과 같음)
+   · 화면 전환은 .stage[data-view="home|waiting|print"] 로 한다 (script.js)
    ===================================================================== */
 
-/* ── 무대(.stage) 재정의: 가로를 창 폭으로 ─────────────────────────── */
+:root {
+  --ink: #24201f;                   /* 진한 카드 · 큰 숫자 */
+  /* 오른쪽 배경: 코랄 → 피치 대각선 그라데이션 */
+  --right-bg: linear-gradient(135deg, #f4978e 0%, #f08080 25%, #f8ad9d 50%, #fbc4ab 75%, #ffdab9 100%);
+  --brown: #874c4c;                 /* PIK-CHA! 로고 */
+  --cream: #f8f5ef;                 /* 브라우저 내용 배경 · 웨이팅 위젯 */
+  --sky: #eff4f8;                   /* 인화 위젯 */
+  --blue: #7ba3c3;                  /* 표 머리글 · 인화 위젯 버튼 */
+  --text: #484848;                  /* 브라우저 탭 · 아이콘 · 보조 글자 */
+  --muted: #c2c2c2;                 /* 진한 카드 위 라벨 */
+  --line: #e6e6e6;                  /* 카드 테두리 */
+  --tabbar: #d6e2fc;                /* 브라우저 탭 줄 */
+  --field: #ebf3ff;                 /* 주소창 · 탭 메뉴 버튼 */
+  --red: #eb5353;
+  --orange: #eb7b53;
+  --royal: #5388eb;
+  --gray: #c7c7c7;
+  --pink: #ffd8d8;
+  --rose: #d96a6a;
+  --font: "Pretendard", "Noto Sans KR", sans-serif;
+
+  --widget-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  /* 위젯 1px 테두리: 왼쪽 위 회색 → 오른쪽 아래 흰색 (60%) */
+  --widget-stroke: linear-gradient(115deg, rgba(153, 153, 153, 0.6) 15%, rgba(255, 255, 255, 0.6) 65%);
+}
+
+body { font-family: var(--font); }
+/* 무대(.stage)를 창 전체로 늘린다.
+   디자인(1342 x 877)이 창에 들어가도록 --fit 배로 확대/축소하는 건 같지만,
+   남는 가로/세로 공간까지 무대가 채운다 → 왼쪽 흰 영역 : 오른쪽 진한 영역 = 432 : 910 비율을 유지하고
+   핸드폰과 브라우저 창은 각 영역의 가운데에 놓인다. (좌우/위아래 빈 여백이 생기지 않음) */
 .stage {
-  left: 0;
-  width: calc(100vw / var(--fit));          /* 창 폭(vw)을 디자인 px 단위로 환산 */
+  --split: calc(100% * 432 / 1342);             /* 왼쪽 영역 폭 */
+  left: 0; top: 0;
+  width: calc(100vw / var(--fit));             /* 창 크기를 디자인 px 단위로 환산 */
+  height: calc(100vh / var(--fit));
   transform-origin: top left;
   transform: scale(var(--fit));
+  background:
+    linear-gradient(#fff, #fff) left top / var(--split) 100% no-repeat,                   /* 왼쪽 흰 영역 */
+    var(--right-bg) right top / calc(100% - var(--split)) 100% no-repeat;                  /* 오른쪽 그라데이션 */
+  font-family: var(--font);
 }
 
-/* ── 코랄 배너: 창 폭 100%, 높이 526 ── */
-.banner { position: absolute; left: 0; top: 0; width: 100%; height: 526px; background: var(--coral); }
-.banner-title {                                  /* 가운데 큰 흰 글자 128px */
+
+/* ── 1. 왼쪽 핸드폰 ────────────────────────────────────────────────── */
+/* 432 x 877, 왼쪽 영역 가운데.
+   위아래는 "로고(y 30) ~ 핸드폰 아래 끝(y 762)" 묶음의 가운데(y 396)가 화면 가운데에 오도록
+   877 기준 가운데(438.5)보다 42.5px 내린다. */
+.phone-side {
   position: absolute;
-  left: 0; width: 100%; top: 210px;
-  text-align: center;
-  font: 400 128px/normal "Special Gothic Expanded One", var(--font);
-  color: #fff;
-  white-space: nowrap;
+  left: calc((var(--split) - 432px) / 2);
+  top: calc((100% - 877px) / 2 + 42.5px);
+  width: 432px; height: 877px;
 }
 
-/* ── 흰 상단바: 높이 63 (배너 위에 겹쳐 있음) ── */
-.top { position: absolute; left: 0; top: 0; width: 100%; height: 63px; background: #fff; }
-.top .logo { position: absolute; left: 39px; top: 18px; width: 79px; height: 28.5px; display: block; }   /* 코랄색 로고 */
+/* 핸드폰 위 로고 (329 x 123 비율, 폭 150). 기기 가운데(x 215.5) 맞춤, 기기 위 여백(0~116) 가운데 */
+.side-logo { position: absolute; left: 140.5px; top: 30px; width: 150px; height: 56px; display: block; }
 
-/* "등록페이지" 링크: 관리자 버튼의 왼쪽에 붙는다 (오른쪽 기준 위치) */
-.reg {
-  position: absolute;
-  right: 210px; top: 22px;
-  width: 81px;
-  text-align: center;
-  font-size: 16px; font-weight: 500; letter-spacing: -0.9px; line-height: 14px;
-  color: var(--coral);
+/* 화면 (72, 135) 287 x 607 */
+.screen { position: absolute; left: 72px; top: 135px; width: 287px; height: 607px; border-radius: 40px; overflow: hidden; }
+.wallpaper {
+  position: absolute; inset: 0;
+  background: url("../assets/phone/phone_background.jpg") -106.76px 0 / 590.2px 607px no-repeat;
 }
-.reg:hover { opacity: 0.7; }
+.frost {                                      /* 배경 흐림 25 + 흰색 20% */
+  position: absolute; inset: 0;
+  background: rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(12.5px);
+          backdrop-filter: blur(12.5px);
+}
 
-/* "관리자" 알약 버튼: 148 x 40, 오른쪽 끝에서 40px 안쪽 */
-.admin {
-  position: absolute;
-  right: 40px; top: 11px;
-  width: 148px; height: 40px;
-  border-radius: 50px;
-  background: var(--coral);
-  color: #fff;
-  transition: filter 0.12s ease;
+/* 스포티파이 위젯 (93, 700) 244 x 116 — 화면 밖은 잘린다
+   (Figma 는 마스크가 20% 투명 막이라 위젯도 20% 로 보였지만, 여기서는 불투명하게 둔다) */
+.music {
+  position: absolute; left: 21px; top: 565px;
+  width: 244px; height: 116px;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background: linear-gradient(#4a1c2a, #4a1c2a) padding-box, var(--widget-stroke) border-box;
+  box-shadow: var(--widget-shadow);
 }
-.admin:hover { filter: brightness(0.94); }
-.avatar {                                        /* 왼쪽 흰 동그라미 30px 안의 이모지 */
+.music .art    { position: absolute; left: 11px; top: 11px; width: 27px; height: 27px; border-radius: 3px; object-fit: cover; outline: 1px solid rgba(255, 255, 255, 0.3); outline-offset: -1px; }
+.music .song   { position: absolute; left: 43px; top: 14px; font-size: 10px; line-height: 11px; font-weight: 600; color: #fff; white-space: nowrap; }
+.music .artist { position: absolute; left: 43px; top: 25px; font-size: 10px; line-height: 11px; color: #9f9f9f; white-space: nowrap; }
+.music .play   { position: absolute; left: 180px; top: 10px; width: 29px; height: 29px; border-radius: 50%; background: #fff; }
+.music .play img { position: absolute; left: 10px; top: 7px; width: 12px; height: 15px; }
+.music .spotify { position: absolute; left: 216px; top: 11px; width: 13px; height: 13px; }
+
+/* 아이폰 테두리 이미지 (53, 116) 325 x 646 */
+.device-frame {
+  position: absolute; left: 53px; top: 116px;
+  width: 325px; height: 646px;
+  filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.3));
+  pointer-events: none;
+}
+
+/* 위젯 공통 */
+.widget {
   position: absolute;
-  left: 5px; top: 5px;
-  width: 30px; height: 30px;
+  border-radius: 20px;
+  background: #fff;
+  color: #000;
+  box-shadow: var(--widget-shadow);
+}
+a.widget { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+a.widget:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2); }
+a.widget:active { transform: scale(0.98); }
+
+/* 제목: PIK-CHA! 아이콘(22 x 12) + 글자 10px */
+.widget .ic { position: absolute; left: 12.5px; top: 12.5px; width: 22px; height: 12px; }
+.w-title { position: absolute; left: 39px; top: 12px; font-size: 10px; line-height: 14px; white-space: nowrap; }
+
+/* 로고 위젯 (94, 194) 116 x 116 */
+.w-logo { left: 94px; top: 194px; width: 116px; height: 116px; box-shadow: var(--widget-shadow), inset 0 1px 4px rgba(255, 255, 255, 0.25); }
+.w-logo img { position: absolute; left: 14px; top: 35px; width: 87px; height: 46px; }
+
+/* 날짜 위젯 (222, 194) */
+.w-date { left: 222px; top: 194px; width: 116px; height: 116px; }
+.w-date .weekday { position: absolute; left: 16px; top: 14px; font-size: 8px; line-height: 10px; }
+.w-date .day     { position: absolute; left: 16px; top: 24px; font-size: 25px; line-height: 30px; font-weight: 300; }
+.w-date .event   { position: absolute; left: 16px; top: 60px; font-size: 8px; line-height: 10px; color: #777; }
+.w-date .chip {
+  position: absolute; left: 15px;
+  width: 85px; height: 13px;
+  padding-left: 16px;
+  border-radius: 6.5px;
+  font-size: 8px; line-height: 13px; white-space: nowrap;
+}
+.w-date .chip i { position: absolute; left: 0; top: 0; width: 13px; height: 13px; border-radius: 50%; }
+.w-date .chip img { position: absolute; left: 3.5px; top: 2.5px; }
+.chip-expo   { top: 76px; background: rgba(190, 238, 218, 0.5); color: #0f6341; }
+.chip-expo i { background: #189160; }
+.chip-pikcha   { top: 92px; background: rgba(242, 210, 255, 0.5); color: #5d0480; }
+.chip-pikcha i { background: #b759dd; }
+.chip-pikcha img { top: 3.5px; }
+
+/* 넓은 위젯 244 x 116 */
+.w-wide { left: 94px; width: 244px; height: 116px; border: 1px solid transparent; }
+.w-wide .ic { left: 11.5px; top: 11.5px; }
+.w-wide .w-title { left: 38px; top: 11px; }
+.w-waiting { top: 322px; background: linear-gradient(var(--cream), var(--cream)) padding-box, var(--widget-stroke) border-box; }
+.w-print   { top: 450px; background: linear-gradient(var(--sky), var(--sky)) padding-box, var(--widget-stroke) border-box; }
+/* 오른쪽 아래 동그란 아이콘 버튼 36px (웨이팅: 금색 + 사람 아이콘 / 인화: 파랑 + 사진 아이콘) */
+.w-wide .go { position: absolute; left: 196px; top: 68px; width: 36px; height: 36px; border-radius: 50%; }
+.w-wide .go img { position: absolute; left: 8px; top: 8px; width: 20px; height: 20px; }
+.w-waiting .go { background: #d9b97a; }
+.w-print .go { background: var(--blue); }
+
+/* 숫자 위젯 116 x 110: 큰 숫자 + 단위, 오른쪽 정렬 */
+.w-stat { top: 578px; width: 116px; height: 110px; }
+.w-now { left: 94px; }
+.w-visitors { left: 222px; }
+.w-stat .num {
+  position: absolute; right: 13px; top: 68px;
+  display: flex; align-items: baseline; gap: 4px;
+  font-size: 16px; line-height: 19px; white-space: nowrap;
+}
+.w-stat .num b { font-size: 30px; line-height: 36px; font-weight: 300; color: var(--ink); }
+
+
+/* ── 2. 오른쪽 브라우저 창 (486, 72) 801 x 733 ───────────────────── */
+.web-side {                                   /* 910 x 877, 오른쪽 영역 가운데 */
+  position: absolute;
+  left: calc(var(--split) + (100% - var(--split) - 910px) / 2);
+  top: calc((100% - 877px) / 2);
+  width: 910px; height: 877px;
+}
+.stage[data-view="home"] .browser,
+.stage:not([data-view="home"]) .camera-stage { display: none; }
+
+/* #home: 3D 카메라 모델 (910 x 877 가운데). 불러오면(.is-ready) 서서히 나타난다 */
+.camera-stage { position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease; }
+.camera-stage.is-ready { opacity: 1; }
+.camera-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.camera-stage::before {                         /* 바닥 그림자 (canvas 보다 먼저 그려져 뒤에 깔린다) */
+  content: ""; position: absolute; left: 50%; top: 66%;
+  width: 420px; height: 46px;
+  transform: translateX(-50%);
   border-radius: 50%;
-  background: #fff;
-  color: #000;
-  font-size: 20px; line-height: 30px;
-  text-align: center;
-}
-.admin-name {                                    /* "관리자" 글자 (아이콘 자리만큼 오른쪽으로 비켜 가운데) */
-  position: absolute;
-  left: 0; width: 148px; top: 12px;
-  padding-left: 22px;
-  text-align: center;
-  font-size: 16px; line-height: 14px;
+  background: radial-gradient(closest-side, rgba(150, 60, 50, 0.35), transparent);       /* 밝은 배경이라 따뜻한 색 그림자 */
+  pointer-events: none;
 }
 
-/* ── 하단 메뉴 카드 3개 ──
-   .cards : 좌우 여백 39/40, 카드 간격 51, 높이 280, y=566. 카드 3개가 남는 폭을 똑같이 나눠 가진다(flex:1) */
-.cards { position: absolute; left: 39px; right: 40px; top: 566px; height: 280px; display: flex; gap: 51px; }
-.card {
-  position: relative;
-  flex: 1;
-  height: 280px;
+.browser {
+  position: absolute; left: 54px; top: 72px;
+  width: 801px; height: 733px;
+  border: 1px solid #b9b9b9;
+  border-radius: 20px;
   background: #fff;
-  border: 2px solid var(--ink);
-  color: #000;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
 }
-.card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18); }   /* 마우스를 올리면 살짝 떠오른다 */
-.card .head {                                    /* 맨 위 26px 제목 띠 ("01 | Dashboard" 등) */
-  position: absolute;
-  left: -2px; top: -2px;
-  width: calc(100% + 4px); height: 26px;         /* 카드 테두리 2px 까지 덮는다 */
-  padding: 2px 0 0 19px;
-  background: var(--ink);
+
+/* 탭 줄 (높이 37) */
+.tabbar { position: absolute; left: 0; top: 0; width: 100%; height: 37px; background: var(--tabbar); }
+.lights { position: absolute; left: 25px; top: 13px; display: flex; gap: 7px; }
+.lights i { width: 13px; height: 13px; border-radius: 50%; background: #ea6868; box-shadow: inset 0 0 0 0.5px #ab4d5f; }
+.lights i:nth-child(2) { background: #b3bfd9; box-shadow: inset 0 0 0 0.5px #a8b4ce; }
+.lights i:nth-child(3) { background: #65c26e; box-shadow: inset 0 0 0 0.5px #529a68; }
+.tab-menu { position: absolute; left: 101px; top: 7px; width: 25px; height: 25px; border-radius: 7px; background: var(--field); }
+.tab-menu::after {                          /* 아래 꺾쇠 */
+  content: ""; position: absolute; left: 9px; top: 7.5px;
+  width: 6px; height: 6px;
+  border-right: 2px solid #000; border-bottom: 2px solid #000;
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+
+/* 탭 203 x 30. 선택된 탭(.is-active)은 흰색으로 아래 도구 줄과 이어진다 */
+.tab {
+  position: absolute; top: 7px;
+  width: 203px; height: 30px;
+  border-radius: 10px 10px 0 0;
+  color: var(--text);
+}
+.tab .ic { position: absolute; left: 8.5px; top: 7.5px; width: 22px; height: 12px; }
+.tab span { position: absolute; left: 41px; top: 8px; font-size: 10px; line-height: 12px; white-space: nowrap; }
+.tab:not(.is-active):hover { background: rgba(255, 255, 255, 0.45); }
+.tab.is-active { background: #fff; }
+.tab.is-active::before, .tab.is-active::after {   /* 탭 아래 양옆의 둥근 발 (반지름 7) */
+  content: ""; position: absolute; bottom: 0; width: 7px; height: 7px;
+}
+.tab.is-active::before { left: -7px;  background: radial-gradient(circle at 0 0, transparent 7px, #fff 7.5px); }
+.tab.is-active::after  { right: -7px; background: radial-gradient(circle at 100% 0, transparent 7px, #fff 7.5px); }
+.tab-waiting { left: 132px; }
+.tab-print { left: 343px; }
+
+.tab-close { position: absolute; top: 14px; width: 14px; height: 14px; border-radius: 50%; }
+.tab-close::before, .tab-close::after {     /* X: 6 x 6, 굵기 2 */
+  content: ""; position: absolute; left: 2.75px; top: 6px; width: 8.5px; height: 2px; border-radius: 1px; background: var(--text);
+}
+.tab-close::before { transform: rotate(45deg); }
+.tab-close::after  { transform: rotate(-45deg); }
+.tab-close:hover { background: rgba(0, 0, 0, 0.08); }
+.tab-close-waiting { left: 313px; }
+.tab-close-print { left: 525px; }
+.tab-sep { position: absolute; left: 549px; top: 12px; width: 2px; height: 17px; border-radius: 1px; background: #a5b4d5; }
+.tab-new { position: absolute; left: 564px; top: 16px; width: 10px; height: 10px; }
+.tab-new::before, .tab-new::after { content: ""; position: absolute; background: var(--text); border-radius: 1px; }
+.tab-new::before { left: 0; top: 4px; width: 10px; height: 2px; }
+.tab-new::after  { left: 4px; top: 0; width: 2px; height: 10px; }
+
+/* 도구 줄 (탭 줄 아래 ~ y151 구분선) */
+.toolbar { position: absolute; left: 0; top: 37px; width: 100%; height: 41px; background: #fff; border-bottom: 1px solid #cecece; }
+.nav { position: absolute; top: 14px; display: block; background: none; border: 0; padding: 0; color: var(--text); }
+.nav svg, .nav img { display: block; }
+.nav-back   { left: 24px; }
+.nav-fwd    { left: 59px; color: #a8a8a8; }
+.nav-reload { left: 98.5px; top: 14.5px; cursor: pointer; }
+.nav-back:hover, .nav-reload:hover { opacity: 0.6; }
+.nav-reload.is-spinning img { animation: spin 0.6s linear; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.address { position: absolute; left: 132px; top: 8px; width: 570px; height: 24px; border-radius: 12px; background: var(--field); }
+.address .site { position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; }
+.address .star { position: absolute; left: 546.5px; top: 5.5px; }
+.profile { position: absolute; left: 737px; top: 8px; width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+.more { position: absolute; left: 780px; top: 12px; width: 2px; height: 16px; display: flex; flex-direction: column; justify-content: space-between; }
+.more i { width: 2px; height: 2px; border-radius: 50%; background: var(--text); }
+
+
+/* ── 3. 브라우저 내용 (487, 151) 799 x 653 ───────────────────────── */
+.content { position: absolute; left: 0; top: 78px; width: 799px; height: 653px; background: var(--cream); }
+.pane { display: none; }
+.stage[data-view="waiting"] .pane-waiting,
+.stage[data-view="print"] .pane-print { display: block; }
+
+.card { position: absolute; border-radius: 20px; background: #fff; border: 1px solid var(--line); }
+
+/* 요약 카드 (509, 168) 756 x 77 */
+.summary { left: 22px; top: 17px; width: 756px; height: 77px; color: var(--ink); }
+.summary-dark { background: var(--ink); border-color: var(--ink); color: #fff; }
+.summary-half { width: 369px; }
+.summary-half-2 { left: 408px; }
+.sum { position: absolute; left: 0; top: 0; width: 378px; height: 100%; }
+.sum-right { left: 378px; top: 12px; height: 52px; border-left: 1px solid #424242; }
+.sum-label { position: absolute; left: 22px; top: 14px; font-size: 10px; line-height: 12px; color: var(--text); white-space: nowrap; }
+.summary-dark .sum-label { color: var(--muted); }
+.sum-right .sum-label { left: 25px; top: 2px; }
+.sum-num { position: absolute; left: 22px; top: 29px; display: flex; align-items: baseline; gap: 4px; font-size: 15px; line-height: 18px; font-weight: 500; white-space: nowrap; }
+.sum-right .sum-num { left: 25px; top: 17px; }
+.sum-num b { font-size: 30px; line-height: 36px; font-weight: 600; }
+
+/* 상태 문구: 요약 카드와 표 사이 */
+.status-msg { position: absolute; left: 24px; top: 95px; font-size: 11px; line-height: 14px; color: var(--red); white-space: nowrap; }
+
+/* 표 카드 (509, 261) 756 x 524 — 내용이 넘치면 안에서 스크롤 */
+.table-card { left: 22px; top: 110px; width: 756px; height: 524px; overflow-y: auto; }
+.list-table { width: 754px; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 12px; line-height: 14px; color: #000; }
+.list-table th {
+  position: sticky; top: 0; z-index: 1;
+  height: 46px; padding: 0;
+  background: var(--blue);
+  box-shadow: 1px 0 0 var(--blue);          /* 확대/축소 때 칸 사이에 생기는 가는 틈을 덮는다 */
+  text-align: left; font-weight: 500; color: #fff;
+}
+.list-table tbody tr:first-child td { border-top: 4.5px solid transparent; }   /* 머리글(46)과 첫 줄 사이 여백 */
+.list-table td { height: 34px; padding: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-table th:first-child, .list-table td:first-child { padding-left: 26px; }
+.waiting-table th:nth-child(6) { padding-left: 6px; }    /* "상태" */
+.print-table th:nth-child(6) { padding-left: 2px; }      /* "인화상태" */
+.print-table th:nth-child(7) { padding-left: 11px; }     /* "SMS" */
+.empty-row { text-align: center; color: #9f9f9f; }
+.list-table td.empty-row { padding: 32px 0; height: auto; }
+
+/* 알약 19px */
+.pill-s {
+  display: inline-block;
+  min-width: 41px; height: 19px; padding: 0 6px;
+  border-radius: 9px;
+  font-size: 12px; line-height: 19px; text-align: center; white-space: nowrap;
   color: #fff;
-  font-size: 16px; line-height: 20px;
 }
-.card .big {                                     /* 큰 제목 40px 굵게 */
-  position: absolute;
-  left: 25px; top: 149px;                        /* 페이지 기준 y=717 (Figma 글자 위치 보정) */
-  font-size: 40px; font-weight: 700; line-height: normal;
-  white-space: nowrap;
-}
-.card .sub {                                     /* 작은 부제 20px 회색 */
-  position: absolute;
-  left: 25px; top: 209px;                        /* 페이지 기준 y=777 */
-  font-size: 20px; line-height: normal;
-  color: var(--gray);
-  white-space: nowrap;
-}
+.waiting-table .pill-s { width: 55px; }
+.pill-s.sms-sent, .pill-s.sms-unsent, .pill-s.print-pending { width: 50px; }
+/* 웨이팅 상태 색 */
+.status-waiting      { background: var(--gray); }
+.status-called       { background: var(--blue); }
+.status-in_session   { background: var(--orange); }
+.status-photographed { background: var(--royal); }
+.status-completed    { background: var(--ink); }
+.status-canceled     { background: var(--red); }
+/* 인화 상태 / SMS 색 */
+.print-pending { background: var(--gray); }
+.print-printed { background: var(--red); }
+.print-failed  { background: var(--ink); }
+.sms-sent   { background: var(--pink); color: var(--rose); }
+.sms-unsent { background: #ececec; color: #9f9f9f; }
 
-/* ── 01 Dashboard 카드만 진한 배경(.dark): 제목 띠는 흰색, 글자는 흰색 ── */
-.card.dark { background: var(--ink); color: #fff; }
-.card.dark .head { background: #fff; color: var(--ink); border: 2px solid var(--ink); }
-.card.dark .sub { color: #fff; }
+/* 표 안 버튼 (취소 · 재인쇄 · SMS재발송): 19px 테두리 알약 */
+.row-btn {
+  height: 19px; padding: 0;
+  border: 1px solid var(--rose);
+  border-radius: 9px;
+  background: #fff; color: var(--rose);
+  font: 12px/17px var(--font);
+  text-align: center; white-space: nowrap;
+  cursor: pointer;
+}
+.row-btn:hover { background: var(--rose); color: #fff; }
+.cancel-btn { width: 39px; border-color: var(--text); color: var(--text); }
+.cancel-btn:hover { background: var(--text); color: #fff; }
+.reprint-btn { width: 46px; }
+.resend-btn { width: 66px; }
+.row-btn:disabled, .row-btn:disabled:hover { border-color: var(--gray); color: var(--gray); background: #fff; cursor: not-allowed; }
+.row-actions { display: flex; gap: 4px; padding-left: 4px; }
+.print-printed, .print-failed { margin-left: 4px; }        /* 41px 알약을 50px 칸 가운데에 (Figma 942) */
+
+button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
