@@ -83,7 +83,9 @@ a:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
 }
 .field::placeholder { color: var(--gray); opacity: 1; }      /* 안내 글자(placeholder)는 회색 */
 .field:focus { border-bottom-color: #b04a3a; }                /* 입력 중에는 줄이 조금 진해진다 */
-select.field { color: var(--gray); cursor: pointer; }         /* 드롭다운은 아직 고르지 않은 상태라 회색 */
+select.field { color: #000; cursor: pointer; }                /* 학과를 고르면 검은 글자 */
+select.field:invalid { color: var(--gray); }                  /* 아직 안 골랐으면("학과를 선택하세요", required + 빈 값) 회색 */
+select.field option { color: #000; }                          /* 펼친 목록의 학과들은 검은 글자 */
 
 /* 드롭다운 오른쪽의 아래 방향 삼각형(▼). 클릭은 통과시킨다. 크기는 기본 13 x 6.75 */
 .tri {

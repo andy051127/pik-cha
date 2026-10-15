@@ -1,7 +1,8 @@
 /* =====================================================================
-   태블릿 QR + 웨이팅 등록  (Figma 1:425  WaitingList_AdminQRPage, 1342 x 877)
+   태블릿 QR + 웨이팅 등록  (Figma 1:2 WaitingList_AdminQRPage1 / 1:68 WaitingList_AdminQRPage2, 1342 x 877)
    구성: (왼쪽 520px) 코랄 패널 — 로고 · QR · 안내 · 현재 대기 팀 수
          (오른쪽)     등록 폼 — 학과 · 학번 · 이름 · 전화번호 · 인원수 · 등록 버튼
+         등록 후(.is-done) — 패널은 "등록이 완료되었어요", 오른쪽은 입장 번호 카드
    모든 위치는 캔버스(1342 x 877) 기준 px
    ===================================================================== */
 
@@ -54,7 +55,7 @@ label[for="phone"] { left: 557px; top: 413px; }
   text-align: center;
   transition: filter 0.12s ease, transform 0.1s ease;
 }
-.btn-minus { left: 27px;  background: #ffbaae;      color: #000; --len: 30px; --th: 5px; }   /* 연한 코랄 + 검정 − */
+.btn-minus { left: 27px;  background: #ffbaae;      color: #fff; --len: 30px; --th: 5px; }   /* 연한 코랄 + 흰색 − */
 .btn-plus  { left: 624px; background: var(--coral); color: #fff; --len: 28px; --th: 4px; }   /* 진한 코랄 + 흰색 + */
 .btn-minus:hover, .btn-plus:hover { filter: brightness(0.94); }
 .btn-minus:active, .btn-plus:active { transform: scale(0.96); }
@@ -63,12 +64,47 @@ label[for="phone"] { left: 557px; top: 413px; }
 .num2 { left: 0; width: 754px; top: 11px; text-align: center; font-size: 48px; font-weight: 700; color: #000; }
 .unit { left: 0; width: 754px; top: 47px; text-align: center; font-size: 16px; color: #000; transform: translateX(38px); }
 
-/* ── 등록 버튼: 751 x 99. 시안은 회색(비활성) 상태 그대로.
-      JS 로 활성화할 때는 색을 코랄로 바꾸면 된다 ── */
+/* ── 등록 버튼: 751 x 99. 입력이 덜 끝나면(.disabled) 시안의 회색, 다 채우면 코랄 ── */
 .submit {
   left: 557px; top: 731px;
   width: 751px; height: 99px;
-  background: #dedede;
-  color: #878787;
+  background: var(--coral);
+  color: #fff;
   font-size: 32px;
 }
+.submit.disabled { background: #dedede; color: #878787; opacity: 1; }
+
+
+/* ── 등록 완료 화면 (Figma 1:68). .stage 에 .is-done 이 붙으면 폼 대신 보인다 ── */
+.done-msg, .done { display: none; }
+.is-done .qr-card, .is-done .qr, .is-done .guide,
+.is-done .form, .is-done #error-msg, .is-done .submit { display: none; }
+.is-done .done-msg, .is-done .done { display: block; }
+
+.panel .done-msg { left: 0; width: 520px; top: 399px; text-align: center; font-size: 48px; }   /* 패널 가운데 큰 안내 */
+
+/* 입장 번호 카드: 629 x 520, 코랄 테두리 2px, 맨 위 48px 코랄 제목 띠 */
+.done-box {
+  position: absolute;
+  left: 616px; top: 111px;
+  width: 629px; height: 520px;
+  border: 2px solid var(--coral);
+}
+.done-box h2 {
+  position: absolute;
+  left: -2px; top: -2px;
+  width: 629px; height: 48px;
+  padding: 4px 0 0 16px;
+  background: var(--coral);
+  color: #fff;
+  font-size: 32px; font-weight: 400; line-height: 40px;
+}
+.done-box p { position: absolute; left: 0; width: 625px; text-align: center; white-space: nowrap; line-height: normal; }
+/* 큰 번호(128px 굵게) + "번"(36px)을 한 덩어리로 가운데 정렬 → 두 자리 번호도 겹치지 않는다 */
+.done-rank { top: 132px; display: flex; justify-content: center; align-items: baseline; gap: 5px; color: #000; }
+.done-rank b    { font-size: 128px; font-weight: 700; line-height: 1; }
+.done-rank span { font-size: 36px; }
+.done-info { top: 385px; font-size: 36px; color: #000; }          /* 학과 · 이름 · 인원 */
+.done-eta  { top: 444px; font-size: 24px; color: var(--gray); }   /* 앞에 N팀 · 예상 대기 M분 */
+
+.done-sms { position: absolute; left: 520px; width: 822px; top: 731px; text-align: center; font-size: 24px; color: #000; white-space: nowrap; }
