@@ -150,3 +150,23 @@ function resetForm() {
   validate();
   stage.classList.remove("is-done");
 }
+
+// ── 숨겨진 전체화면 전환: QR 이미지를 누르면 토글 ──────────────────
+// 태블릿 브라우저의 모바일 UI 때문에 주소창을 못 숨기는 경우를 위한 스태프용 버튼 (겉으로는 안 보인다).
+const qrEl = document.getElementById("download-qr");
+
+function toggleFullscreen() {
+  const root = document.documentElement;
+  const active = document.fullscreenElement || document.webkitFullscreenElement;
+  const request = root.requestFullscreen || root.webkitRequestFullscreen;
+  const exit = document.exitFullscreen || document.webkitExitFullscreen;
+
+  if (active) {
+    if (exit) exit.call(document);
+  } else if (request) {
+    const result = request.call(root);
+    if (result && result.catch) result.catch((err) => console.error("전체화면 전환 실패:", err));
+  }
+}
+
+qrEl.addEventListener("click", toggleFullscreen);

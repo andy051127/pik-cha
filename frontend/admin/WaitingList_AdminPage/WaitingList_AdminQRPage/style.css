@@ -108,3 +108,6 @@ label[for="phone"] { left: 557px; top: 413px; }
 .done-eta  { top: 444px; font-size: 24px; color: var(--gray); }   /* 앞에 N팀 · 예상 대기 M분 */
 
 .done-sms { position: absolute; left: 520px; width: 822px; top: 731px; text-align: center; font-size: 24px; color: #000; white-space: nowrap; }
+
+/* QR 이미지는 숨겨진 전체화면 토글 버튼 — 누를 때 하이라이트가 번쩍이지 않게 한다 */
+.qr { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
