@@ -67,8 +67,18 @@ class EdsdkWorker:
     # ── 시작/종료 ──────────────────────────────────────────────
     def start(self):
         if self._thread is not None:
-            print("[WORKER] 이미 시작됨")
-            return
+            if self.init_error is None and self._thread.is_alive():
+                print("[WORKER] 이미 시작됨")
+                return
+            if self._thread.is_alive():
+                self._thread.join(timeout=1)
+                if self._thread.is_alive():
+                    raise RuntimeError("[WORKER] 이전 초기화 스레드가 아직 종료되지 않았습니다")
+            self._thread = None
+            self.init_error = None
+            self.camera = None
+            self.ready.clear()
+            self._queue = queue.Queue()
         self._running = True
         self._thread = threading.Thread(target=self._run, daemon=True, name="EdsdkWorker")
         self._thread.start()
@@ -104,11 +114,17 @@ class EdsdkWorker:
             #   set_capacity가 SaveTo=Host보다 먼저 와야 함 (sdk.py 주석 참고).
             sdk.set_capacity(camera)
             sdk.set_save_to_host(camera)
+            sdk.log_image_quality(camera)
             events.register_event_handlers(camera)
 
             self.camera = camera
         except Exception as e:
             self.init_error = e
+            self._running = False
+            try:
+                sdk.terminate_sdk()
+            except Exception as cleanup_error:
+                print(f"[WORKER] 초기화 실패 후 SDK 종료 실패: {cleanup_error}")
             self.ready.set()
             return
 
@@ -170,8 +186,9 @@ class EdsdkWorker:
     def release(self):
         return self._call(shutter.release)
 
-    def capture_with_af(self, af_wait_sec: float = 1.0):
-        return self._call(shutter.capture_with_af, af_wait_sec=af_wait_sec, timeout=15.0)
+    def capture_with_af(self, af_wait_sec: float = 1.0, already_half_pressed: bool = False):
+        return self._call(shutter.capture_with_af, af_wait_sec=af_wait_sec,
+                          already_half_pressed=already_half_pressed, timeout=25.0)
 
     def start_liveview(self):
         return self._call(liveview.start_live_view)

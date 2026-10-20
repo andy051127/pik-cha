@@ -107,6 +107,25 @@ SAVE_TO_BOTH = 3           # kEdsSaveTo_Both
 edsdk.EdsSetPropertyData.restype = c_int
 edsdk.EdsSetPropertyData.argtypes = [c_void_p, c_uint32, c_int, c_uint32, c_void_p]
 
+PROP_IMAGE_QUALITY = 0x00000100  # kEdsPropID_ImageQuality
+edsdk.EdsGetPropertyData.restype = c_int
+edsdk.EdsGetPropertyData.argtypes = [c_void_p, c_uint32, c_int, c_uint32, c_void_p]
+
+
+def log_image_quality(camera):
+    """현재 화질 값을 진단용으로만 읽는다. 카메라 설정은 변경하지 않는다."""
+    value = c_uint32()
+    try:
+        err = edsdk.EdsGetPropertyData(
+            camera, PROP_IMAGE_QUALITY, 0, ctypes.sizeof(value), byref(value)
+        )
+        if err == EDS_ERR_OK:
+            print(f"[SDK] 화질(ImageQuality): 0x{value.value:08X}")
+        else:
+            print(f"[SDK] 화질(ImageQuality) 조회 실패: 0x{err:04X}")
+    except Exception as e:
+        print(f"[SDK] 화질(ImageQuality) 조회 실패: {e}")
+
 
 def set_save_to_host(camera) -> int:
     """촬영된 이미지를 PC(Host)로 자동 전송하도록 설정."""

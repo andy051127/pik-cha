@@ -72,7 +72,10 @@ async function startShooting() {
                 ticket_number: ticketNumber }),
         });
         const result = await res.json();
-        if (!res.ok || !result.success) console.error("촬영 시작 실패:", result);
+        if (!res.ok || !result.success) {
+            console.error("촬영 시작 실패:", result);
+            if (!res.ok) timeLeftEl.textContent = "카메라 연결 오류 - 스태프를 불러주세요";
+        }
     } catch (err) {
         console.error("촬영 시작 요청 실패:", err);
     }

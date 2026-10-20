@@ -17,7 +17,6 @@ directory item(obj)을 이용해 실제 파일을 로컬에 저장한다.
 """
 
 import os
-import time
 from ctypes import (
     c_int, c_uint32, c_void_p, byref, sizeof, Structure, c_char, string_at
 )
@@ -57,6 +56,9 @@ edsdk.EdsCreateMemoryStream.argtypes = [c_uint32, c_void_p]
 edsdk.EdsDownload.restype = c_int
 edsdk.EdsDownload.argtypes = [c_void_p, c_uint32, c_void_p]
 
+edsdk.EdsDownloadCancel.restype = c_int
+edsdk.EdsDownloadCancel.argtypes = [c_void_p]
+
 edsdk.EdsDownloadComplete.restype = c_int
 edsdk.EdsDownloadComplete.argtypes = [c_void_p]
 
@@ -79,13 +81,15 @@ def download_image(directory_item) -> str | None:
     err = edsdk.EdsGetDirectoryItemInfo(directory_item, byref(info))
     if err != 0:
         print(f"[DOWNLOAD] DirectoryItemInfo 조회 실패: {err}")
+        edsdk.EdsDownloadCancel(directory_item)
         return None
 
     filename = info.szFileName.decode("utf-8", errors="ignore")
-    if not filename:
-        filename = f"capture_{int(time.time())}.jpg"
     if os.path.splitext(filename)[1].lower() not in (".jpg", ".jpeg"):
-        print(f"[DOWNLOAD] JPEG가 아닌 파일이라 무시함: {filename}")
+        from .events import capture_done_flag
+        capture_done_flag["last_error"] = f"RAW 감지: {filename or '파일명 없음'}"
+        print(f"[DOWNLOAD] ⚠️ JPEG가 아닌 파일(RAW?)이 전송됨 - 카메라 메뉴 '화질'을 JPEG로 바꿔주세요: {filename}")
+        edsdk.EdsDownloadCancel(directory_item)
         return None
 
     save_path = os.path.join(SAVE_DIR, filename)
@@ -96,6 +100,7 @@ def download_image(directory_item) -> str | None:
     err = edsdk.EdsCreateMemoryStream(0, byref(stream))
     if err != 0:
         print(f"[DOWNLOAD] MemoryStream 생성 실패: {err}")
+        edsdk.EdsDownloadCancel(directory_item)
         return None
 
     # 2) 실제 이미지 데이터를 메모리 스트림으로 다운로드
@@ -103,11 +108,9 @@ def download_image(directory_item) -> str | None:
     err = edsdk.EdsDownload(directory_item, file_size, stream)
     if err != 0:
         print(f"[DOWNLOAD] Download 실패: {err}")
+        edsdk.EdsDownloadCancel(directory_item)
         edsdk.EdsRelease(stream)
         return None
-
-    err = edsdk.EdsDownloadComplete(directory_item)
-    print(f"[DOWNLOAD] DownloadComplete 결과: {err}")
 
     # 3) 메모리 스트림에서 실제 바이트 꺼내기
     length = c_uint32()
@@ -118,6 +121,7 @@ def download_image(directory_item) -> str | None:
 
     if length.value == 0 or not ptr.value:
         print(f"[DOWNLOAD] ⚠️ 메모리 스트림이 비어있음 (length={length.value})")
+        edsdk.EdsDownloadCancel(directory_item)
         edsdk.EdsRelease(stream)
         return None
 
@@ -132,6 +136,7 @@ def download_image(directory_item) -> str | None:
             f.write(photo_bytes)
     except OSError as e:
         print(f"[DOWNLOAD] ⚠️ 파일 쓰기 실패: {e}")
+        edsdk.EdsDownloadCancel(directory_item)
         return None
 
     exists_immediately = os.path.exists(save_path)
@@ -140,6 +145,13 @@ def download_image(directory_item) -> str | None:
 
     if not exists_immediately:
         print(f"[DOWNLOAD] ⚠️ open().write()까지 했는데도 파일이 없음 -> 매우 이례적, 재확인 필요")
+        edsdk.EdsDownloadCancel(directory_item)
+        return None
+
+    err = edsdk.EdsDownloadComplete(directory_item)
+    print(f"[DOWNLOAD] DownloadComplete 결과: {err}")
+    if err != 0:
+        edsdk.EdsDownloadCancel(directory_item)
         return None
 
     print(f"[DOWNLOAD] 저장 완료: {save_path}")

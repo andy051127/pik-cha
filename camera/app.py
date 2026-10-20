@@ -10,7 +10,7 @@ Canon EDSDK Four-Cut Photo Booth - FastAPI Backend
     EDSDK가 응답하지 않는(타임아웃) 문제가 있었습니다.
 """
 
-from fastapi import FastAPI, WebSocket, HTTPException, File, UploadFile, Form
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, File, UploadFile, Form
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -36,7 +36,7 @@ try:
     from edsdk_worker import EdsdkWorker
     from edsdk_wrapper import events
     EDSDK_AVAILABLE = True
-except Exception as e:
+except OSError as e:
     print(f"⚠️  [MOCK] EDSDK 로드 실패({e}) - DLL 없이 목업 모드로 실행합니다")
     EDSDK_AVAILABLE = False
     EdsdkWorker = None
@@ -59,6 +59,8 @@ image_manager = ImageManager()
 is_shooting = False
 liveview_active = False
 worker = EdsdkWorker() if EDSDK_AVAILABLE else None  # 싱글톤 워커 인스턴스 (DLL 없으면 None)
+capture_in_progress = threading.Event()
+liveview_lock = asyncio.Lock()
 
 # ★ 백엔드 진행상황(카운트다운/촬영완료 등)을 프론트로 실시간 전달하기 위한 상태
 active_websockets: list[WebSocket] = []
@@ -96,6 +98,7 @@ def init_camera():
         print("✅ 카메라 초기화 완료")
         return True
     except Exception as e:
+        camera = None
         print(f"❌ 카메라 초기화 실패: {e}")
         return False
 
@@ -137,50 +140,68 @@ async def websocket_liveview(websocket: WebSocket):
     print("🔌 WebSocket 클라이언트 연결")
     active_websockets.append(websocket)
 
-    # ★ [임시/TEMP] 카메라 없이 테스트: camera가 None이면 실제 라이브뷰 대신
-    #   웹소켓 연결만 조용히 유지한다. worker.start_liveview()는 카메라가 없으면
-    #   즉시 예외를 던지는데, 그러면 아래 except/finally로 빠져서 웹소켓이 바로
-    #   닫혀버리고, active_websockets에서도 빠져서 broadcast_status()가
-    #   sequence_complete를 못 보내는 상황이 생김 - 그러면 프론트가 촬영 화면에서
-    #   영영 못 넘어감. 카메라 연결되면 이 분기는 자동으로 안 타게 됨.
+    async def wait_for_disconnect():
+        try:
+            while True:
+                message = await websocket.receive()
+                if message["type"] == "websocket.disconnect":
+                    return
+        except WebSocketDisconnect:
+            return
+
+    disconnect_task = asyncio.create_task(wait_for_disconnect())
+    liveview_started = False
     try:
-        if camera is not None:
-            worker.start_liveview()
-            liveview_active = True
-        else:
-            print("⚠️  [MOCK] 카메라 미연결 - 라이브뷰 없이 진행상황 브로드캐스트만 유지")
         await asyncio.sleep(0.5)
 
-        while True:
-            # ★ 예전엔 촬영 중(is_shooting)일 때 프레임 요청을 통째로 건너뛰어서
-            #   촬영 내내 라이브뷰가 멈춰 있었다. 지금은 워커 큐가 셔터 명령과
-            #   프레임 요청 순서를 안전하게 관리해주므로 이 제한이 필요 없다.
-            #   (셔터 명령이 큐에 있는 짧은 순간엔 프레임 요청이 그 뒤에서
-            #   대기했다가 처리되므로 화면이 살짝씩 멈칫할 수는 있지만 안전함)
+        while not disconnect_task.done():
+            if capture_in_progress.is_set():
+                await asyncio.sleep(0.05)
+                continue
             if camera is not None:
+                if not liveview_started:
+                    try:
+                        async with liveview_lock:
+                            await asyncio.to_thread(worker.start_liveview)
+                        liveview_started = True
+                        liveview_active = True
+                    except Exception as e:
+                        print(f"⚠️  라이브뷰 시작 실패: {e}")
+                        await asyncio.sleep(0.5)
+                        continue
                 try:
                     frame = await asyncio.to_thread(worker.get_liveview_frame)
                     # ★ base64+JSON 대신 바이너리 프레임으로 그대로 전송 - base64가 크기를
                     #   33% 불리고 JSON 직렬화/파싱 비용도 붙어서, 프레임레이트 저하의 한
                     #   원인이었음. 프론트는 text(JSON 상태메시지)와 구분해서 받아야 함.
-                    if frame:
+                    if frame and not disconnect_task.done() and not capture_in_progress.is_set():
                         await websocket.send_bytes(frame)
-                except Exception:
-                    pass
+                except WebSocketDisconnect:
+                    break
+                except Exception as e:
+                    print(f"⚠️  라이브뷰 프레임 오류: {e}")
+                    break
 
-            # ★ 고정 지연(이전엔 0.1초) 제거 - 프레임 가져오는 자체가 느리면 그 위에
-            #   인위적으로 더 느려지기만 했음. sleep(0)은 지연 없이 이벤트 루프에
-            #   제어권만 양보해서, 실제로 낼 수 있는 최대 속도로 자연스럽게 돎.
-            await asyncio.sleep(0)
+            await asyncio.sleep(0 if camera is not None else 0.05)
 
     except Exception as e:
         print(f"❌ WebSocket 에러: {e}")
     finally:
-        liveview_active = False
+        disconnect_task.cancel()
+        try:
+            await disconnect_task
+        except asyncio.CancelledError:
+            pass
         if websocket in active_websockets:
             active_websockets.remove(websocket)
-        if camera is not None:
-            worker.stop_liveview()
+        liveview_active = bool(active_websockets)
+        if camera is not None and liveview_started:
+            try:
+                async with liveview_lock:
+                    if not active_websockets:
+                        await asyncio.to_thread(worker.stop_liveview)
+            except Exception as e:
+                print(f"⚠️  라이브뷰 종료 실패: {e}")
         try:
             await websocket.close()
         except Exception:
@@ -206,13 +227,15 @@ async def start_four_cut(request: FourCutStartRequest):
     ticket_number = request.ticket_number
     print(f"🎫 /api/four-cut/start 요청 수신 - ticket_number={ticket_number!r}")
 
-    # ★ [임시/TEMP] 원래는 카메라 미연결 시 여기서 막았는데, 카메라/프린터 없이
-    #   웨이팅→촬영→인화 연결 흐름을 테스트할 수 있도록 막지 않고 목업 모드로
-    #   진행시킴 (아래 run_four_cut에서 camera is None이면 목업 분기를 탐).
-    #   실제 카메라 붙이면 자동으로 원래 동작으로 돌아감 - 이 가드를 되살릴 필요 없음.
-
     if is_shooting:
         raise HTTPException(status_code=400, detail="이미 촬영 중입니다")
+
+    if EDSDK_AVAILABLE and camera is None:
+        print("⚠️  카메라 미연결 - 촬영 시작 전 연결을 한 번 재시도합니다")
+        await asyncio.to_thread(init_camera)
+        if camera is None:
+            print("❌ 카메라 연결 실패 - 촬영을 시작하지 않습니다")
+            raise HTTPException(status_code=503, detail="카메라 연결 실패")
 
     is_shooting = True
 
@@ -229,11 +252,8 @@ async def start_four_cut(request: FourCutStartRequest):
 
             for shot_num in range(1, count + 1):
                 try:
-                    # ★ [임시/TEMP] 카메라 없이 테스트: 실제 EDSDK 셔터/다운로드 대신
-                    #   카운트다운만 실시간으로 흉내내고 목업 이미지를 저장한다.
-                    #   camera가 잡히면(실제 카메라 연결) 이 분기는 안 타고 바로
-                    #   아래 실촬영 로직으로 감 - 되돌릴 때 이 if 블록만 지우면 됨.
-                    if camera is None:
+                    # DLL이 없을 때만 목업 촬영을 허용한다.
+                    if not EDSDK_AVAILABLE:
                         print(f"📸 [MOCK] {shot_num}/{count}번째 (카메라 미연결 - 목업 진행)")
                         for sec in range(interval, 0, -1):
                             broadcast_status({
@@ -272,17 +292,14 @@ async def start_four_cut(request: FourCutStartRequest):
 
                     broadcast_status({"type": "capturing", "shot": shot_num, "count": count})
 
-                    print(f"  3️⃣  반셔터 해제 중...")
-                    worker.release()
-                    print(f"  ✅ 반셔터 해제 완료")
-
                     # 촬영 직전 다운로드 플래그 초기화
                     events.capture_done_flag["done"] = False
                     events.capture_done_flag["last_saved_path"] = None
+                    events.capture_done_flag["last_error"] = None
 
-                    print(f"  4️⃣  촬영 중...")
-                    # af_wait_sec을 넉넉히 줘서 AF가 실제로 잠길 시간을 확보 (초점 문제 완화)
-                    capture_ok = worker.capture_with_af(af_wait_sec=1.5)
+                    print(f"  3️⃣  반셔터를 유지한 채 촬영 중...")
+                    capture_in_progress.set()
+                    capture_ok = worker.capture_with_af(af_wait_sec=0, already_half_pressed=True)
 
                     if not capture_ok:
                         # AF 실패(EDS_ERR_TAKE_PICTURE_AF_NG 등)로 카메라가 촬영을
@@ -290,7 +307,8 @@ async def start_four_cut(request: FourCutStartRequest):
                         print(f"  ⚠️  촬영 실패 (AF NG 등) - 재시도합니다...")
                         broadcast_status({"type": "retrying", "shot": shot_num, "count": count})
                         time.sleep(0.5)
-                        capture_ok = worker.capture_with_af(af_wait_sec=2.0)
+                        capture_ok = worker.capture_with_af(af_wait_sec=2.0,
+                                                            already_half_pressed=False)
 
                     if not capture_ok:
                         print(f"  ❌ 재시도도 실패 - 이 컷은 건너뜁니다")
@@ -335,6 +353,8 @@ async def start_four_cut(request: FourCutStartRequest):
                             broadcast_status({"type": "shot_failed", "shot": shot_num, "count": count})
                     else:
                         print(f"⚠️  다운로드 이벤트를 받지 못했습니다 (ObjectEvent 콜백 미수신)")
+                        if events.capture_done_flag["last_error"]:
+                            print(f"⚠️  다운로드 오류: {events.capture_done_flag['last_error']}")
                         broadcast_status({"type": "shot_failed", "shot": shot_num, "count": count})
 
                 except Exception as shot_error:
@@ -344,6 +364,13 @@ async def start_four_cut(request: FourCutStartRequest):
                     traceback.print_exc()
                     print(f"⏭️  다음 컷으로 계속 진행합니다...")
                     broadcast_status({"type": "shot_failed", "shot": shot_num, "count": count})
+                finally:
+                    if capture_in_progress.is_set():
+                        try:
+                            worker.start_liveview()
+                        except Exception as e:
+                            print(f"⚠️  촬영 후 라이브뷰 재설정 실패: {e}")
+                        capture_in_progress.clear()
 
             print(f"\n✨ 총 {count}장 촬영 시도 완료!")
             broadcast_status({"type": "sequence_complete"})
