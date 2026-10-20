@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=402">
   <title>PIK-CHA! - 대기 현황</title>
-  <link rel="stylesheet" href="../admin.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../admin.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <!--
-    모바일 대기 현황 (Figma 1:546  WaitingList_UserPage, 402 x 874)
+    모바일 대기 현황 (Figma 1:168  WaitingList_UserPage2, 402 x 874)
     흐름: 등록 폼(WaitingList_UserPage) → [여기] → "웨이팅 취소하기" 를 누르면 등록 폼으로
     JS 연결 지점
-      · #my-rank      : 내 입장 순서 숫자 (시안 값 4)
+      · #my-rank      : 내 입장 번호 숫자 (시안 값 4)
       · #my-info      : "학과 · 이름 · 인원" 한 줄 요약
       · #wait-eta     : "앞에 N팀 · 예상 대기 M분"
       · #print-status : 인화 상태 안내 박스 (인화가 완료되면 안내 문구를 바꾼다)
@@ -27,10 +27,10 @@
       <img class="logo2" src="../assets/logo-second.svg" alt="PIK-CHA!">
     </header>
 
-    <!-- 카드 1: 입장 순서 (큰 번호 + 요약 + 예상 대기) -->
+    <!-- 카드 1: 입장 번호 (큰 번호 + 요약 + 예상 대기) -->
     <section class="box box-rank">
-      <h2>입장 순서</h2>
-      <p class="rank" id="my-rank">4</p><p class="rank-unit">번</p>
+      <h2>입장 번호</h2>
+      <p class="rank-row"><b class="rank" id="my-rank">4</b><span class="rank-unit">번</span></p>
       <p class="who" id="my-info">컴퓨터소프트웨어과 · 이경환 · 4명</p>
       <p class="eta" id="wait-eta">앞에 3팀 · 예상 대기 12분</p>
     </section>

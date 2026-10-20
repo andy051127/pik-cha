@@ -84,6 +84,9 @@ def download_image(directory_item) -> str | None:
     filename = info.szFileName.decode("utf-8", errors="ignore")
     if not filename:
         filename = f"capture_{int(time.time())}.jpg"
+    if os.path.splitext(filename)[1].lower() not in (".jpg", ".jpeg"):
+        print(f"[DOWNLOAD] JPEG가 아닌 파일이라 무시함: {filename}")
+        return None
 
     save_path = os.path.join(SAVE_DIR, filename)
     print(f"[DOWNLOAD] 저장 대상 파일: {filename} -> {save_path}")

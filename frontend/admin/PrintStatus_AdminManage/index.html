@@ -1,54 +1,11 @@
-<!-- =====================================================================
-     인화 상태 관리 (관리자)  —  기존 admin/PrintStatus_AdminManage 구조 기반, 색만 코랄로 변경
-     · 순수 HTML/CSS (JS 없음). 표 본문(#print-body)은 나중에 JS 가 행(<tr>)을 채운다.
-     · 행 하나 = 인화 1건. 열: 순번 · 세션 · 이름 · 전화번호 · 매수 · 인화상태 · SMS · 생성시각 · (버튼)
-     · JS 가 채울 행 모양 (기존 script.js 와 같은 클래스 이름):
-         <td><span class="status-pill print-값">…</span></td>        값: pending | printed | failed
-         <td><span class="sms-pill sms-sent|sms-unsent">…</span></td>  발송됨 | 안 됨
-         <td><div class="row-actions">
-               <button type="button" class="action-btn reprint-btn" data-session="…">재인쇄</button>
-               <button type="button" class="action-btn resend-btn"  data-session="…">SMS재발송</button>
-             </div></td>                                              (못 쓰는 버튼은 disabled)
-     [JS 훅]  #btn-refresh(새로고침)  #status-msg(오류 문구, 평소엔 hidden)  #print-body(표 본문)
-     ===================================================================== -->
+<!-- 인화 상태 관리 화면은 관리자 화면(WaitingList_AdminPage)의 #print 로 합쳐졌다. 예전 주소로 들어오면 그쪽으로 보낸다. -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="0; url=../WaitingList_AdminPage/index.html#print">
 <title>PIK-CHA! - 인화 상태 관리</title>
-<link rel="stylesheet" href="../list.css">
-<link rel="stylesheet" href="style.css">
+<script>location.replace("../WaitingList_AdminPage/index.html#print");</script>
 </head>
-<body>
-  <!-- 상단 바: 대시보드로 돌아가기 · 제목 · 새로고침 -->
-  <div class="topbar">
-    <a href="../WaitingList_AdminPage/index.html" class="back-link">← 대시보드</a>
-    <h1>인화 상태 관리</h1>
-    <a href="#" class="refresh-btn" id="btn-refresh">새로고침</a>
-  </div>
-
-  <!-- 오류/안내 문구 (예: 로그인이 필요합니다). 쓸 때 hidden 만 지우면 된다 -->
-  <p class="status-msg" id="status-msg" hidden>로그인이 필요합니다</p>
-
-  <table class="list-table">
-    <thead>
-      <tr>
-        <th>순번</th>
-        <th>세션</th>
-        <th>이름</th>
-        <th>전화번호</th>
-        <th>매수</th>
-        <th>인화상태</th>
-        <th>SMS</th>
-        <th>생성시각</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody id="print-body">
-      <tr><td colspan="9" class="empty-row">불러오는 중...</td></tr>
-    </tbody>
-  </table>
-  <script src="script.js"></script>
-</body>
+<body></body>
 </html>

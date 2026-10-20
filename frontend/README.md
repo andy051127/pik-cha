@@ -6,7 +6,7 @@
 > **JavaScript 는 없습니다.** 화면 이동은 `<a href>`, hover/active 는 CSS 만 씁니다.
 > 모양과 화면 흐름까지만 구현돼 있고, 실제 동작(숫자 입력, 카메라, 웨이팅 등록 등)은 JS 로 붙이면 됩니다. → [JS 연결 가이드](#5-js-연결-가이드)
 
-- 디자인 원본: Figma 파일 키 `nvFuZIgz74tddZfp769Gdu` (Page 1)
+- 디자인 원본: 키오스크 `frontend/` 는 Figma 파일 키 `xWwsvyTKuQtjnzA2MBzG5k` (페이지 `6:219`), 웨이팅·관리자 `admin/` 은 `nvFuZIgz74tddZfp769Gdu` (Page 1)
 - 참고용 기존 코드 (이 폴더에서는 수정하지 않음): `C:\pik-cha\admin`, `C:\pik-cha\frontend_new`, `C:\pik-cha\Lambda`
 
 ---
@@ -25,7 +25,8 @@ npx http-server . -p 5173 -c-1
 | 키오스크 | http://localhost:5173/frontend/01_landing_main/index.html |
 | 관리자 | http://localhost:5173/admin/WaitingList_AdminPage/index.html |
 
-- 고정 캔버스 화면은 **창 크기에 맞춰 비율을 유지한 채 자동 확대/축소**됩니다 (CSS 수학 함수, 최신 Chrome/Edge 기준).
+- 키오스크 화면(`frontend/`)은 **반응형**입니다. flex/grid 로 배치되어 가로 모니터·세로 모니터·태블릿·폰에서 각각 레이아웃이 맞춰집니다. 세로 화면이나 폭 900px 이하에서는 좌우 2단 화면(05·06·07)이 위아래 1단으로 바뀝니다.
+- 관리자 화면(`admin/`)의 고정 캔버스 화면은 아직 **창 크기에 맞춰 비율을 유지한 채 확대/축소**하는 방식입니다.
 - 폰트는 Google Fonts 라서 인터넷 연결이 필요합니다.
 
 ---
@@ -35,8 +36,8 @@ npx http-server . -p 5173 -c-1
 ```
 Frontend_changes/
 ├─ assets/              두 영역이 같이 쓰는 이미지 (로고 SVG, QR 샘플, frames/)
-├─ frontend/            키오스크 화면 (1342×877)
-│  ├─ common.css        공통 스타일 (상단바, BACK/NEXT, 확대·축소)
+├─ frontend/            키오스크 화면 (반응형, Figma 기준 1342×877)
+│  ├─ common.css        공통 스타일 (헤더 로고·선, 배경 원, 알약 버튼, 확대·축소)
 │  └─ NN_이름/           index.html + style.css (+ 그 화면 전용 assets/)
 ├─ admin/               웨이팅·관리자 화면
 │  ├─ admin.css         고정 캔버스 화면(메인·등록 폼·QR)의 공통 스타일
@@ -50,7 +51,8 @@ Frontend_changes/
 2. 공통 스타일은 `common.css` / `admin.css` / `list.css` 에, 화면 고유 스타일만 `style.css` 에.
 3. 글자는 SVG 가 아니라 **HTML 텍스트 + CSS**. SVG 는 로고·이미지가 박힌 도형·아이콘에만.
 4. 이미지는 두 영역이 같이 쓰면 루트 `assets/`, 한 화면에서만 쓰면 그 화면의 `assets/`.
-5. 고정 캔버스 화면은 Figma 좌표 그대로 `position: absolute`. 캔버스는 키오스크·데스크톱·태블릿 1342×877, 모바일 402×874.
+5. 키오스크 화면은 좌표 고정(absolute) 대신 flex/grid 로 배치하고, 크기는 `clamp(최솟값, 화면 비례값, Figma 값 × var(--k))` 로 준다. (`--k` 는 Figma 프레임보다 큰 화면에서의 확대 배율, `common.css` 참고)
+   관리자의 고정 캔버스 화면은 Figma 좌표 그대로 `position: absolute` (1342×877, 모바일 402×874).
 
 ---
 
@@ -62,14 +64,14 @@ Frontend_changes/
 
 | 폴더 | 화면 | Figma | 이동 |
 |---|---|---|---|
-| `01_landing_main` | 메인 | `1:180` | 버튼 |
-| `02_waiting_number` | 순번 입력 키패드 | `1:241` | BACK / NEXT |
-| `03_number_of_prints` | 수량 선택 (− 2 +) | `1:143` | BACK / NEXT |
-| `04_countdown` | START in 5 | `1:212` | 화면 터치 |
-| `05_take_a_picture` | 촬영 (0/8, 남은 시간) | `1:14` | 화면 터치 |
-| `06_review_photo` | 사진 선택 (4컷 보드 + 4×2 썸네일) | `1:101` | NEXT |
-| `07_select_frame` | 프레임 선택 | `1:304` | NEXT (검정) |
-| `08_print_qr` | 출력 대기 + 다운로드 QR | `1:71` | 화면 터치 → 01 |
+| `01_landing_main` | 메인 | `40:134` | 시작하기 |
+| `02_waiting_number` | 순번 입력 키패드 | `40:516` | 확인하고 계속하기 |
+| `03_number_of_prints` | 수량 선택 (− 2 +) | `40:99` | 확인하고 계속하기 |
+| `04_countdown` | 곧 촬영이 시작돼요 (5) | `40:490` | 자동 (JS) |
+| `05_take_a_picture` | 촬영 (0/8, 남은 시간) | `40:2` | 자동 (JS) |
+| `06_review_photo` | 사진 선택 (4컷 보드 + 4×2 썸네일) | `40:58` | 선택 완료 |
+| `07_select_frame` | 프레임 선택 | `40:560` | 선택 완료 |
+| `08_print_qr` | 출력 대기 + 다운로드 QR | `40:31` | 자동 → 01 (JS) |
 
 ### 웨이팅 · 관리자 (`admin/`)
 
@@ -123,7 +125,7 @@ JS 는 아래 "연결 지점"에만 붙이면 됩니다. 레이아웃을 건드�
 - 요소는 **`id` 또는 `data-*`** 로 찾습니다. 클래스(`.key`, `.thumb` 등)는 모양용이라 바뀔 수 있습니다.
 - 상태는 **클래스**로 바꿉니다 (`.is-selected`, `.disabled`). 스타일은 이미 CSS 에 있습니다.
 - **좌표는 CSS 에만** 있습니다. JS 에서 `style.left/top` 을 바꾸지 마세요.
-- 고정 캔버스 화면은 통째로 `transform: scale(--fit)` 됩니다. 좌표를 계산할 때는 `getBoundingClientRect()` 값을 `--fit` 으로 나눠야 합니다.
+- (관리자) 고정 캔버스 화면은 통째로 `transform: scale(--fit)` 됩니다. 좌표를 계산할 때는 `getBoundingClientRect()` 값을 `--fit` 으로 나눠야 합니다.
 - 이동은 지금 `<a href>` 입니다. JS 로 제어할 때는 `location.href` 로 바꾸고 임시 링크(`.goto`)는 지웁니다.
 - `<form>` 은 쓰지 않았습니다. 값은 `#dept.value` 처럼 직접 읽습니다.
 
@@ -132,13 +134,13 @@ JS 는 아래 "연결 지점"에만 붙이면 됩니다. 레이아웃을 건드�
 | 화면 | 연결 지점 | 메모 |
 |---|---|---|
 | 01 메인 | `#waiting-register-btn` | |
-| 02 순번 입력 | `#keypad`, `[data-key]` (`0`~`9`, `backspace`), `#number-line`, `#nav-back`, `#nav-next` | 숫자는 `#number-line` 밑줄 위(왼쪽 정렬)에 그림 |
+| 02 순번 입력 | `#keypad`, `[data-key]` (`0`~`9`, `clear`, `backspace`), `#number-line`, `#error-msg`, `#nav-next` | `clear` = 지우기(전체), `backspace` = 삭제(한 글자). `#number-line` 은 Figma 에 없는 자리라 안내 문구 아래에 둠 |
 | 03 수량 | `#print-count`, `[data-action="decrease\|increase"]` | 수량 2~4 |
-| 04 카운트다운 | `#countdown-number`, `.goto` | 5→1 후 05 로. 숫자 앞에 공백(`" 5"`)이 있음 |
-| 05 촬영 | `#camera-preview`, `#shot-count`, `#time-left`, `.goto` | 523×721 자리에 `<video>` |
+| 04 카운트다운 | `#countdown-number` | 5→1 후 05 로 |
+| 05 촬영 | `#camera-preview`, `#shot-count`, `#time-left` | 523×721 자리에 카메라 영상 |
 | 06 사진 선택 | `#board`, `[data-slot="1..4"]`, `[data-photo="1..8"]`, `#nav-next` | 8장 중 4장 선택 (`.is-selected`) |
 | 07 프레임 선택 | `#board`, `[data-slot]`, `.sw[data-group][data-value]`, `#nav-next` | `data-group` = `logo` / `color` / `special` / `frame`. 그룹마다 하나만 `.is-selected` |
-| 08 출력/QR | `#download-qr`, `#print-timer`, `.goto` | QR `src` 교체, 30초 후 01 로 |
+| 08 출력/QR | `#download-qr`, `#print-timer` | QR `src` 교체, 30초 후 01 로 |
 
 07 의 `data-value`: `logo-1..3`, `rainbow`, `bw`, `special-1..6`, `frame-white|black|blue|pink|shingu`.
 프레임 이미지는 `assets/frames/{종류}-{round|arch|long}.svg` (예: `frame-white` → `white-round.svg`).
@@ -166,7 +168,7 @@ JS 는 아래 "연결 지점"에만 붙이면 됩니다. 레이아웃을 건드�
 | 클래스 | 의미 | 정의 위치 |
 |---|---|---|
 | `.is-selected` | 선택됨 (06 썸네일: 코랄 테두리, 07 원: 코랄 링) | `06_review_photo/style.css`, `07_select_frame/style.css` |
-| `.disabled` | 비활성 (흐리게 + 클릭 불가) | `frontend/common.css`, `admin/admin.css` |
+| `.disabled` | 비활성 (흐리게 + 클릭 불가. 키오스크 알약 버튼 `.cta` 는 회색 배경) | `frontend/common.css`, `admin/admin.css` |
 | `[hidden]` | 숨김 | 공통 css |
 
 ---
@@ -182,7 +184,8 @@ JS 는 아래 "연결 지점"에만 붙이면 됩니다. 레이아웃을 건드�
 
 ## 7. 알아둘 점
 
-- **폰트**: 본문 `Noto Sans` + `Noto Sans KR` (**Noto Sans 를 먼저** 써야 Figma 와 줄 높이가 맞음), `Special Gothic Expanded One` (PHOTOBOOTH / START in), `Righteous` (숫자·WAITING LIST), `Sora` (모바일 PHOTO BOOTH). 모두 CSS `@import` 로 불러옵니다. Figma 의 SF Compact 는 웹에서 쓸 수 없어 Noto Sans KR 로 대체했습니다.
+- **폰트 (키오스크)**: 본문 `Gowun Dodum`, 키패드 숫자 `DM Sans`, 큰 숫자 `Righteous`, 촬영·출력 화면 숫자 `Noto Sans` (Thin/Bold).
+- **폰트 (웨이팅·관리자)**: 본문 `Noto Sans` + `Noto Sans KR` (**Noto Sans 를 먼저** 써야 Figma 와 줄 높이가 맞음), `Special Gothic Expanded One` (PHOTOBOOTH / START in), `Righteous` (숫자·WAITING LIST), `Sora` (모바일 PHOTO BOOTH). 모두 CSS `@import` 로 불러옵니다. Figma 의 SF Compact 는 웹에서 쓸 수 없어 Noto Sans KR 로 대체했습니다.
 - **모바일 상태바**: 모바일 화면 위의 시간·신호·배터리는 시안 그대로 넣은 장식용입니다 (`aria-hidden`). 실기기에서 OS 상태바와 겹치면 `.m-head .statusbar` 만 지우면 됩니다.
 - **현재 한계**: 동작은 전부 없습니다 (정적 화면). 관리자 메인의 "Dashboard" 카드는 갈 화면이 없어 링크가 `#` 입니다.
 - **용량**: 이미지가 박힌 프레임 SVG 는 한 개가 0.3~0.8MB 입니다 (`assets/` 전체 약 9MB).

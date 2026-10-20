@@ -156,7 +156,7 @@ function loadSelectionFromSession() {
 }
 
 // ── 실제 아이콘 이미지로 스와치 렌더링 ─────────────────────────────
-const specialIds = ["navy_star", "marble", "mint_white_star", "black_white_star", "halloween", "hello"];
+const specialIds = ["navy_star", "marble", "mint_white_star", "black_white_star", "hello", "halloween"];
 function renderSwatches() {
     document.querySelectorAll(".sw[data-group][data-value]").forEach((swatch) => {
         const { group, value } = swatch.dataset;

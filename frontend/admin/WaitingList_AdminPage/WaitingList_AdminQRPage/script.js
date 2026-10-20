@@ -34,7 +34,7 @@ const errorMsg = document.getElementById("error-msg");
 const submitBtn = document.getElementById("btn-register");
 
 const MIN_PARTY = 1;
-const MAX_PARTY = 8;
+const MAX_PARTY = 6;
 const PHONE_PATTERN = /^010-\d{4}-\d{4}$/;
 
 function formatPhone(value) {
@@ -61,6 +61,7 @@ phoneInput.addEventListener("input", () => {
 studentIdInput.addEventListener("input", validate);
 nameInput.addEventListener("input", validate);
 departmentSelect.addEventListener("change", validate);
+validate();
 
 minusBtn.addEventListener("click", (event) => {
   event.preventDefault();
@@ -103,7 +104,7 @@ submitBtn.addEventListener("click", async (event) => {
       submitBtn.classList.remove("disabled");
       return;
     }
-    location.href = `../WaitingList_UserPage_Status/index.html?ticket=${result.ticket_number}`;
+    showDone(result.ticket_number);
   } catch (err) {
     console.error("웨이팅 등록 요청 실패:", err);
     errorMsg.hidden = false;
@@ -112,3 +113,60 @@ submitBtn.addEventListener("click", async (event) => {
     submitBtn.classList.remove("disabled");
   }
 });
+
+// ── 등록 완료 화면 (Figma WaitingList_AdminQRPage2) ─────────────────
+// 입장 번호를 보여 주고, DONE_SCREEN_MS 뒤에 다음 손님을 위해 빈 폼으로 돌아간다.
+const DONE_SCREEN_MS = 10000;
+const stage = document.querySelector(".stage");
+
+async function showDone(ticketNumber) {
+  document.getElementById("done-rank").textContent = ticketNumber;
+  document.getElementById("done-info").textContent =
+    `${departmentSelect.value} · ${nameInput.value.trim()} · ${partySizeEl.textContent}명`;
+  const etaEl = document.getElementById("done-eta");
+  etaEl.textContent = "";
+  stage.classList.add("is-done");
+  pollWaitingCount();
+  setTimeout(resetForm, DONE_SCREEN_MS);
+
+  try {
+    const res = await fetch(`${API_BASE}/waitlist/${ticketNumber}`);
+    const data = await res.json();
+    if (res.ok) etaEl.textContent = `앞에 ${data.teams_ahead}팀 · 예상 대기 ${data.estimated_wait_minutes}분`;
+  } catch (err) {
+    console.error("대기 정보 조회 실패:", err);
+  }
+}
+
+function resetForm() {
+  departmentSelect.selectedIndex = 0;
+  studentIdInput.value = "";
+  nameInput.value = "";
+  phoneInput.value = "";
+  partySizeEl.textContent = "2";
+  errorMsg.hidden = true;
+  errorMsg.textContent = "";
+  delete submitBtn.dataset.busy;
+  validate();
+  stage.classList.remove("is-done");
+}
+
+// ── 숨겨진 전체화면 전환: QR 이미지를 누르면 토글 ──────────────────
+// 태블릿 브라우저의 모바일 UI 때문에 주소창을 못 숨기는 경우를 위한 스태프용 버튼 (겉으로는 안 보인다).
+const qrEl = document.getElementById("download-qr");
+
+function toggleFullscreen() {
+  const root = document.documentElement;
+  const active = document.fullscreenElement || document.webkitFullscreenElement;
+  const request = root.requestFullscreen || root.webkitRequestFullscreen;
+  const exit = document.exitFullscreen || document.webkitExitFullscreen;
+
+  if (active) {
+    if (exit) exit.call(document);
+  } else if (request) {
+    const result = request.call(root);
+    if (result && result.catch) result.catch((err) => console.error("전체화면 전환 실패:", err));
+  }
+}
+
+qrEl.addEventListener("click", toggleFullscreen);

@@ -13,9 +13,6 @@ function showMessage(message) {
 
 function render() {
     numberLine.textContent = digits;
-    numberLine.style.fontSize = "48px";
-    numberLine.style.lineHeight = "0";
-    numberLine.style.color = "var(--coral)";
     nextBtn.classList.toggle("disabled", !digits || submitting);
     nextBtn.setAttribute("aria-disabled", String(!digits || submitting));
 }
@@ -24,7 +21,10 @@ document.querySelectorAll("#keypad [data-key]").forEach((key) => {
     key.addEventListener("click", (event) => {
         event.preventDefault();
         if (submitting) return;
-        digits = key.dataset.key === "backspace" ? digits.slice(0, -1) : digits + key.dataset.key;
+        const value = key.dataset.key;
+        digits = value === "clear" ? ""
+            : value === "backspace" ? digits.slice(0, -1)
+            : digits + value;
         showMessage("");
         render();
     });
