@@ -1,7 +1,9 @@
-// 모바일 시안에는 학번/전화번호 칸이 없어 제출 시 입력받는다.
+// 모바일 웨이팅 등록 폼: 학과 · 학번 · 이름 · 전화번호 · 인원수를 받아 등록한다.
 const API_BASE = "https://nwwtnmzm3l.execute-api.ap-northeast-2.amazonaws.com/prod";
 const departmentSelect = document.getElementById("dept");
+const studentIdInput = document.getElementById("sid");
 const nameInput = document.getElementById("name");
+const phoneInput = document.getElementById("phone");
 const partySizeEl = document.getElementById("head-count");
 const submitBtn = document.getElementById("btn-register");
 const errorMsg = document.getElementById("error-msg");
@@ -21,13 +23,20 @@ function showMessage(message) {
 }
 
 function validate() {
-    const valid = !!departmentSelect.value.trim() && !!nameInput.value.trim();
+    const valid = !!departmentSelect.value.trim() && !!studentIdInput.value.trim()
+        && !!nameInput.value.trim() && PHONE_PATTERN.test(phoneInput.value);
     submitBtn.classList.toggle("disabled", !valid || submitting);
     return valid;
 }
 
 departmentSelect.addEventListener("change", validate);
+studentIdInput.addEventListener("input", () => { showMessage(""); validate(); });
 nameInput.addEventListener("input", () => { showMessage(""); validate(); });
+phoneInput.addEventListener("input", () => {
+    phoneInput.value = formatPhone(phoneInput.value);
+    showMessage("");
+    validate();
+});
 document.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", (event) => {
         event.preventDefault();
@@ -39,13 +48,6 @@ document.querySelectorAll("[data-action]").forEach((button) => {
 submitBtn.addEventListener("click", async (event) => {
     event.preventDefault();
     if (!validate() || submitting) return;
-    const studentId = window.prompt("학번을 입력하세요");
-    if (studentId === null) { showMessage("학번 입력이 취소되었습니다."); return; }
-    if (!studentId.trim()) { showMessage("학번을 입력해주세요."); return; }
-    const enteredPhone = window.prompt("전화번호를 입력하세요 (010-XXXX-XXXX)");
-    if (enteredPhone === null) { showMessage("전화번호 입력이 취소되었습니다."); return; }
-    const phoneNumber = formatPhone(enteredPhone);
-    if (!PHONE_PATTERN.test(phoneNumber)) { showMessage("전화번호를 확인해주세요."); return; }
     submitting = true;
     validate();
     showMessage("등록 중...");
@@ -53,8 +55,8 @@ submitBtn.addEventListener("click", async (event) => {
         const res = await fetch(`${API_BASE}/waitlist`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ department: departmentSelect.value.trim(), student_id: studentId.trim(),
-                name: nameInput.value.trim(), phone_number: phoneNumber,
+            body: JSON.stringify({ department: departmentSelect.value.trim(), student_id: studentIdInput.value.trim(),
+                name: nameInput.value.trim(), phone_number: phoneInput.value.trim(),
                 party_size: parseInt(partySizeEl.textContent, 10) }),
         });
         const result = await res.json();

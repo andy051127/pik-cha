@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1342">
   <title>PIK-CHA! - 웨이팅 등록 (태블릿)</title>
-  <link rel="stylesheet" href="../admin.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../admin.css?v=3">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <!--
-    태블릿 QR + 웨이팅 등록 (Figma 1:425  WaitingList_AdminQRPage, 1342 x 877)
-    왼쪽 코랄 패널(QR · 현재 대기 팀 수)과 오른쪽 등록 폼으로 나뉜다. 모바일 등록 폼과 같은 항목에 학번·전화번호가 더해졌다.
+    태블릿 QR + 웨이팅 등록 (Figma 1:2 WaitingList_AdminQRPage1 / 1:68 WaitingList_AdminQRPage2, 1342 x 877)
+    왼쪽 코랄 패널(QR · 현재 대기 팀 수)과 오른쪽 등록 폼으로 나뉜다.
+    등록이 끝나면 .stage 에 .is-done 을 붙여 "등록 완료" 화면(입장 번호 카드)으로 바꾸고, 잠시 뒤 빈 폼으로 돌아온다.
     JS 연결 지점
       · #download-qr / .qr  : 등록용 QR 이미지 (지금은 샘플 PNG. 실제 QR 로 교체)
       · #waiting-now        : 왼쪽 패널의 현재 대기 팀 수 "00" (시안 값 00)
@@ -18,15 +19,17 @@
       · #head-count         : 인원수 숫자 (시안 값 2, 허용 범위 1~8)
       · [data-action="decrease"] / [data-action="increase"] : 인원수 −/+ 버튼
       · #btn-register       : 등록 버튼. 시안은 회색(비활성) 상태 — 필수 입력이 끝나면 활성화한다
+      · #done-rank / #done-info / #done-eta : 등록 완료 화면의 입장 번호 · "학과 · 이름 · 인원" · "앞에 N팀 · 예상 대기 M분"
     ※ 폼 태그(<form>)는 쓰지 않았다. 제출은 JS 에서 #btn-register 클릭으로 처리한다.
   -->
   <main class="stage" data-screen="tablet-register">
     <!-- 왼쪽 코랄 패널 520 x 877: 로고 → QR 카드 → 안내 → 현재 대기 팀 수 -->
     <aside class="panel">
-      <img class="logo" src="../assets/logo-white.svg" alt="PIK-CHA!">
+      <img class="logo" src="../../assets/logo-white.svg" alt="PIK-CHA!">
       <div class="qr-card"></div>                    <!-- QR 뒤의 흰 둥근 카드 -->
-      <img class="qr" id="download-qr" src="../assets/qr-sample.png" alt="웨이팅 등록 QR 코드">
+      <img class="qr" id="download-qr" src="../../assets/qr-sample.png" alt="웨이팅 등록 QR 코드">
       <p class="guide">QR을 찍거나 웨이팅을 등록하면<br>입장과 인화 상태를 알려드려요</p>
+      <p class="done-msg">등록이 완료되었어요</p>    <!-- 등록 완료 화면에서만 보인다 -->
       <p class="now">현재 대기</p>
       <p class="num" id="waiting-now">00</p>
       <p class="team">팀</p>
@@ -36,8 +39,45 @@
     <div class="form">
       <!-- 학과: 드롭다운 + 오른쪽 ▼ -->
       <label class="t lb" for="dept">학과</label>
-      <select class="field" id="dept" name="dept" autocomplete="off">
+      <select class="field" id="dept" name="dept" autocomplete="off" required>
+        <option value="" disabled selected hidden>학과를 선택하세요</option>
+        <option>외부인</option>
         <option>컴퓨터소프트웨어과</option>
+        <option>영상디자인과</option>
+        <option>시각디자인과</option>
+        <option>패션디자인과</option>
+        <option>뷰티디자인과</option>
+        <option>E스포츠과</option>
+        <option>환경조경학과</option>
+        <option>바이오생명과학과</option>
+        <option>원예디자인과</option>
+        <option>반려동물산업과</option>
+        <option>반려동물보건과</option>
+        <option>유아교육학과</option>
+        <option>식품영양학과</option>
+        <option>호텔조리과</option>
+        <option>호텔제과제빵과</option>
+        <option>사진영상콘텐츠과</option>
+        <option>미디어콘텐츠과</option>
+        <option>AI데이터과</option>
+        <option>게임콘텐츠과</option>
+        <option>마케팅학과</option>
+        <option>세무회계학과</option>
+        <option>호텔관광과</option>
+        <option>항공서비스과</option>
+        <option>사회복지학과</option>
+        <option>물리치료학과</option>
+        <option>방사선학과</option>
+        <option>치기공학과</option>
+        <option>치위생학과</option>
+        <option>작업치료학과</option>
+        <option>임상병리학과</option>
+        <option>보건의료행정학과</option>
+        <option>스포츠재활과</option>
+        <option>응급구조학과</option>
+        <option>부동산지적학과</option>
+        <option>실내건축과</option>
+        <option>건축학과</option> 
       </select>
       <i class="tri big"></i>
 
@@ -64,6 +104,17 @@
     <!-- 등록 버튼 (시안은 회색 비활성 상태, 아직 이동할 화면 없음) -->
     <p id="error-msg" role="alert" hidden style="position:absolute;left:557px;top:703px;width:751px;color:#b04a3a;font-size:16px"></p>
     <a class="pill submit" id="btn-register" href="#">웨이팅 등록하기</a>
+
+    <!-- 등록 완료 화면 (.stage.is-done 일 때만 보인다): 입장 번호 카드 + SMS 안내 -->
+    <section class="done" aria-live="polite">
+      <div class="done-box">
+        <h2>입장 번호</h2>
+        <p class="done-rank"><b id="done-rank">4</b><span>번</span></p>
+        <p class="done-info" id="done-info">컴퓨터소프트웨어과 · 이경환 · 4명</p>
+        <p class="done-eta" id="done-eta">앞에 3팀 · 예상 대기 12분</p>
+      </div>
+      <p class="done-sms">발송된 SMS문자를 확인해 보세요</p>
+    </section>
   </main>
   <script src="script.js"></script>
 </body>
