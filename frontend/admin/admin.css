@@ -37,6 +37,16 @@
 }
 /* 모바일 화면은 <html class="mobile"> 로 표시 → 캔버스가 402 x 874 로 바뀐다 */
 html.mobile { --w: 402px; --h: 874px; }
+/* 모바일은 한 화면에 억지로 맞추지 않고 가로 기준으로 맞춘 뒤 세로로 스크롤한다.
+   (브라우저 주소창 때문에 100vh 가 실제 보이는 높이보다 커서 아래쪽 버튼이 잘리던 문제)
+   세로 배율은 1 미만으로 줄이지 않고, 데스크톱처럼 창이 큰 경우에만 세로에 맞춘다 */
+html.mobile {
+  --fit: min(tan(atan2(100vw, var(--w))), max(tan(atan2(100vh, var(--h))), 1));
+  height: auto; min-height: 100%;
+  overflow-x: hidden; overflow-y: auto;
+}
+html.mobile body { height: auto; min-height: 100%; overflow: visible; }
+html.mobile .stage { position: absolute; }
 
 
 /* ── 2. 기본 리셋 & 무대(.stage) ────────────────────────────────────── */

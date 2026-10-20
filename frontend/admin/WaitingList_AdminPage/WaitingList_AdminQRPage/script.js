@@ -34,7 +34,7 @@ const errorMsg = document.getElementById("error-msg");
 const submitBtn = document.getElementById("btn-register");
 
 const MIN_PARTY = 1;
-const MAX_PARTY = 8;
+const MAX_PARTY = 6;
 const PHONE_PATTERN = /^010-\d{4}-\d{4}$/;
 
 function formatPhone(value) {

@@ -32,6 +32,8 @@ label[for="phone"] { left: 31px; top: 494px; }
   border: 2px solid var(--coral);
 }
 .count-box a, .count-box p { position: absolute; line-height: normal; white-space: nowrap; }
+/* 숫자/"명" 글자 상자가 박스 전체 폭이라 DOM 순서상 뒤에 오는 − 버튼을 덮어 클릭을 가로챘다 → 클릭은 통과시킨다 */
+.count-box p { pointer-events: none; }
 
 /* −/+ 버튼: 46 x 46 정사각. 기호는 admin.css 6번 규칙이 --len/--th 값으로 그린다 */
 .btn-minus, .btn-plus {

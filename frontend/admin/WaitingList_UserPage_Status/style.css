@@ -26,8 +26,10 @@
 .box p { position: absolute; white-space: nowrap; line-height: normal; text-align: center; }   /* 카드 안 글자는 모두 가운데 정렬 */
 
 /* ── 카드 1 안의 글자 (좌표는 카드 왼쪽 위 기준) ── */
-.rank      { left: 0; width: 335px; top: 51px;  font-size: 64px; font-weight: 700; color: #000; transform: translateX(-10px); }   /* 큰 번호 "4" */
-.rank-unit { left: 0; width: 335px; top: 96px;  font-size: 16px; color: #000; transform: translateX(24px); }                      /* "번" */
+/* 큰 번호 + "번"을 한 줄(flex)로 묶어 가운데 정렬 → 두 자리 이상 번호도 "번"과 겹치지 않는다 */
+.box .rank-row { left: 0; width: 335px; top: 51px; display: flex; justify-content: center; align-items: baseline; gap: 4px; color: #000; }
+.rank      { font-size: 64px; font-weight: 700; line-height: 1; }   /* 큰 번호 "4" */
+.rank-unit { font-size: 16px; }                                      /* "번" */
 .who       { left: 0; width: 335px; top: 159px; font-size: 20px; color: #000; }                                                   /* 학과 · 이름 · 인원 */
 .eta       { left: 0; width: 335px; top: 189px; font-size: 14px; color: var(--gray); }                                            /* 앞에 N팀 · 예상 대기 */
 
