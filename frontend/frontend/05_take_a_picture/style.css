@@ -15,11 +15,63 @@
 
 /* 카메라 프리뷰 자리: 비율 523 x 721. 남은 높이에 맞춘다 (색은 common.css 의 .photo) */
 .preview {
+  position: relative;
   flex: none;
   height: min(721px * var(--k), calc(100dvh - var(--header-h) - var(--pad-y) * 2));
   aspect-ratio: 523 / 721;
   max-width: 55%;
   overflow: hidden;
+}
+
+/* 셔터 뒤 저장 대기와 카메라 연결 오류를 프리뷰 안에서 표시한다. */
+.saving-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2dvh, 20px);
+  padding: clamp(16px, 4vw, 32px);
+  box-sizing: border-box;
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(2px);
+  color: var(--ink);
+  font-family: var(--font-ko);
+  text-align: center;
+  word-break: keep-all;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+.saving-overlay.is-visible { opacity: 1; visibility: visible; }
+.saving-spinner {
+  width: clamp(40px, 7dvh, 64px);
+  height: clamp(40px, 7dvh, 64px);
+  box-sizing: border-box;
+  border: clamp(4px, 0.7dvh, 6px) solid var(--line);
+  border-top-color: var(--coral);
+  border-radius: 50%;
+  animation: saving-spin 1s linear infinite;
+}
+.saving-overlay.is-error .saving-spinner { display: none; }
+.saving-title {
+  margin: 0;
+  font-size: clamp(20px, 3.4dvh, 32px);
+  line-height: 1.35;
+}
+.saving-subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(12px, 2dvh, 19px);
+  line-height: 1.4;
+}
+@keyframes saving-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .saving-spinner { animation: none; }
+  .saving-overlay { transition: none; }
 }
 
 /* 정보 영역: 남은 폭의 가운데 (Figma 가운데 x=962, 구분선 폭 582) */

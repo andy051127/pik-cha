@@ -21,7 +21,13 @@
 
     <div class="content">
       <!-- 카메라 프리뷰 자리 (가로 화면: 왼쪽 / 세로 화면: 위) -->
-      <div class="photo preview" id="camera-preview"></div>
+      <div class="photo preview" id="camera-preview">
+        <div class="saving-overlay" id="saving-overlay" role="status" aria-live="polite" aria-hidden="true">
+          <span class="saving-spinner" aria-hidden="true"></span>
+          <p class="saving-title" id="saving-title">찰칵! 사진 저장 중…</p>
+          <p class="saving-subtitle" id="saving-subtitle">잠시만 기다려 주세요</p>
+        </div>
+      </div>
 
       <!-- 정보 영역: 촬영 횟수 / 구분선 / 남은 시간 (세로 화면에선 좌우로 나란히) -->
       <div class="info">

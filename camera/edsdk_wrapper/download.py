@@ -17,6 +17,7 @@ directory item(obj)을 이용해 실제 파일을 로컬에 저장한다.
 """
 
 import os
+import time
 from ctypes import (
     c_int, c_uint32, c_void_p, byref, sizeof, Structure, c_char, string_at
 )
@@ -85,9 +86,11 @@ def download_image(directory_item) -> str | None:
         return None
 
     filename = info.szFileName.decode("utf-8", errors="ignore")
+    if not filename:
+        filename = f"capture_{int(time.time())}.jpg"
     if os.path.splitext(filename)[1].lower() not in (".jpg", ".jpeg"):
         from .events import capture_done_flag
-        capture_done_flag["last_error"] = f"RAW 감지: {filename or '파일명 없음'}"
+        capture_done_flag["last_error"] = f"RAW 감지: {filename}"
         print(f"[DOWNLOAD] ⚠️ JPEG가 아닌 파일(RAW?)이 전송됨 - 카메라 메뉴 '화질'을 JPEG로 바꿔주세요: {filename}")
         edsdk.EdsDownloadCancel(directory_item)
         return None
@@ -112,6 +115,9 @@ def download_image(directory_item) -> str | None:
         edsdk.EdsRelease(stream)
         return None
 
+    err = edsdk.EdsDownloadComplete(directory_item)
+    print(f"[DOWNLOAD] DownloadComplete 결과: {err}")
+
     # 3) 메모리 스트림에서 실제 바이트 꺼내기
     length = c_uint32()
     edsdk.EdsGetLength(stream, byref(length))
@@ -121,7 +127,6 @@ def download_image(directory_item) -> str | None:
 
     if length.value == 0 or not ptr.value:
         print(f"[DOWNLOAD] ⚠️ 메모리 스트림이 비어있음 (length={length.value})")
-        edsdk.EdsDownloadCancel(directory_item)
         edsdk.EdsRelease(stream)
         return None
 
@@ -136,7 +141,6 @@ def download_image(directory_item) -> str | None:
             f.write(photo_bytes)
     except OSError as e:
         print(f"[DOWNLOAD] ⚠️ 파일 쓰기 실패: {e}")
-        edsdk.EdsDownloadCancel(directory_item)
         return None
 
     exists_immediately = os.path.exists(save_path)
@@ -145,13 +149,6 @@ def download_image(directory_item) -> str | None:
 
     if not exists_immediately:
         print(f"[DOWNLOAD] ⚠️ open().write()까지 했는데도 파일이 없음 -> 매우 이례적, 재확인 필요")
-        edsdk.EdsDownloadCancel(directory_item)
-        return None
-
-    err = edsdk.EdsDownloadComplete(directory_item)
-    print(f"[DOWNLOAD] DownloadComplete 결과: {err}")
-    if err != 0:
-        edsdk.EdsDownloadCancel(directory_item)
         return None
 
     print(f"[DOWNLOAD] 저장 완료: {save_path}")

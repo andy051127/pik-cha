@@ -95,6 +95,9 @@ def init_camera():
     try:
         worker.start()  # ★ 여기 안에서 init_sdk~open_session까지 전부 처리
         camera = worker.camera
+        if camera is None:
+            print("⚠️  카메라 초기화 미완료: 워커에 카메라가 없습니다")
+            return False
         print("✅ 카메라 초기화 완료")
         return True
     except Exception as e:
@@ -151,6 +154,7 @@ async def websocket_liveview(websocket: WebSocket):
 
     disconnect_task = asyncio.create_task(wait_for_disconnect())
     liveview_started = False
+    last_frame_error_log = 0.0
     try:
         await asyncio.sleep(0.5)
 
@@ -171,16 +175,23 @@ async def websocket_liveview(websocket: WebSocket):
                         continue
                 try:
                     frame = await asyncio.to_thread(worker.get_liveview_frame)
-                    # ★ base64+JSON 대신 바이너리 프레임으로 그대로 전송 - base64가 크기를
-                    #   33% 불리고 JSON 직렬화/파싱 비용도 붙어서, 프레임레이트 저하의 한
-                    #   원인이었음. 프론트는 text(JSON 상태메시지)와 구분해서 받아야 함.
-                    if frame and not disconnect_task.done() and not capture_in_progress.is_set():
-                        await websocket.send_bytes(frame)
-                except WebSocketDisconnect:
-                    break
                 except Exception as e:
-                    print(f"⚠️  라이브뷰 프레임 오류: {e}")
-                    break
+                    now = time.monotonic()
+                    if now - last_frame_error_log >= 5:
+                        print(f"⚠️  라이브뷰 프레임 오류: {e}")
+                        last_frame_error_log = now
+                    await asyncio.sleep(0.1)
+                    continue
+
+                # 프레임 요청 오류는 재시도하고, 전송 오류일 때만 연결을 정리한다.
+                if frame and not disconnect_task.done() and not capture_in_progress.is_set():
+                    try:
+                        await websocket.send_bytes(frame)
+                    except (WebSocketDisconnect, RuntimeError):
+                        break
+                    except Exception as e:
+                        print(f"⚠️  라이브뷰 전송 오류: {e}")
+                        break
 
             await asyncio.sleep(0 if camera is not None else 0.05)
 
@@ -294,11 +305,13 @@ async def start_four_cut(request: FourCutStartRequest):
 
                     # 촬영 직전 다운로드 플래그 초기화
                     events.capture_done_flag["done"] = False
+                    events.capture_done_flag["done_at"] = None
                     events.capture_done_flag["last_saved_path"] = None
                     events.capture_done_flag["last_error"] = None
 
                     print(f"  3️⃣  반셔터를 유지한 채 촬영 중...")
                     capture_in_progress.set()
+                    t_shutter = time.monotonic()
                     capture_ok = worker.capture_with_af(af_wait_sec=0, already_half_pressed=True)
 
                     if not capture_ok:
@@ -310,7 +323,9 @@ async def start_four_cut(request: FourCutStartRequest):
                         capture_ok = worker.capture_with_af(af_wait_sec=2.0,
                                                             already_half_pressed=False)
 
+                    t_cmd = time.monotonic()
                     if not capture_ok:
+                        print(f"⏱️ [{shot_num}/{count}] 셔터명령 {t_cmd - t_shutter:.2f}초 / 촬영 실패")
                         print(f"  ❌ 재시도도 실패 - 이 컷은 건너뜁니다")
                         broadcast_status({"type": "shot_failed", "shot": shot_num, "count": count})
                         continue  # 다음 컷으로
@@ -318,6 +333,7 @@ async def start_four_cut(request: FourCutStartRequest):
                     print(f"  ✅ 촬영 명령 완료")
 
                     print("이미지 다운로드 대기 중...")
+                    wait_started = time.monotonic()
                     saved_path = None
                     for attempt in range(100):  # 최대 10초 대기
                         if events.capture_done_flag["done"]:
@@ -328,6 +344,9 @@ async def start_four_cut(request: FourCutStartRequest):
                         time.sleep(0.1)
 
                     if saved_path:
+                        done_at = events.capture_done_flag["done_at"]
+                        if done_at is not None:
+                            print(f"⏱️ [{shot_num}/{count}] 셔터명령 {t_cmd - t_shutter:.2f}초 / 찰칵→수신완료 {done_at - t_shutter:.2f}초")
                         photo_bytes = None
                         for retry in range(10):  # 최대 1초, 파일시스템 반영 대기
                             if os.path.exists(saved_path):
@@ -352,6 +371,7 @@ async def start_four_cut(request: FourCutStartRequest):
                                   f"captured_photos 폴더를 백신 예외 목록에 추가해보세요)")
                             broadcast_status({"type": "shot_failed", "shot": shot_num, "count": count})
                     else:
+                        print(f"⏱️ [{shot_num}/{count}] 수신 실패(대기 {time.monotonic() - wait_started:.1f}초)")
                         print(f"⚠️  다운로드 이벤트를 받지 못했습니다 (ObjectEvent 콜백 미수신)")
                         if events.capture_done_flag["last_error"]:
                             print(f"⚠️  다운로드 오류: {events.capture_done_flag['last_error']}")

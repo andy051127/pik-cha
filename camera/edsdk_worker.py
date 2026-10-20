@@ -27,12 +27,15 @@ import ctypes
 from ctypes import wintypes
 import queue
 import threading
+import time
 
 from edsdk_wrapper import sdk, events, shutter, liveview
 
 user32 = ctypes.windll.user32
 
 PM_REMOVE = 0x0001
+KEEPALIVE_INTERVAL_SEC = 30
+KEEPALIVE_LOG_INTERVAL_SEC = 300
 
 
 class _MSG(ctypes.Structure):
@@ -131,10 +134,30 @@ class EdsdkWorker:
         self.ready.set()
         print("▶️  워커 루프 시작")
 
+        last_keepalive = time.monotonic()
+        last_keepalive_failure_log = None
         while self._running:
             # 큐를 기다리는 동안 Windows 메시지도 계속 pump 해줘야
             # ObjectEvent(다운로드 요청) 콜백이 실제로 들어온다.
             _pump_windows_messages()
+
+            now = time.monotonic()
+            if now - last_keepalive >= KEEPALIVE_INTERVAL_SEC:
+                try:
+                    err = sdk.extend_shutdown_timer(self.camera)
+                    if err == 0:
+                        last_keepalive_failure_log = None
+                    elif (last_keepalive_failure_log is None or
+                          now - last_keepalive_failure_log >= KEEPALIVE_LOG_INTERVAL_SEC):
+                        print(f"[WORKER] 카메라 유지 신호 실패: 0x{err:04X}")
+                        last_keepalive_failure_log = now
+                except Exception as e:
+                    if (last_keepalive_failure_log is None or
+                            now - last_keepalive_failure_log >= KEEPALIVE_LOG_INTERVAL_SEC):
+                        print(f"[WORKER] 카메라 유지 신호 실패: {e}")
+                        last_keepalive_failure_log = now
+                finally:
+                    last_keepalive = time.monotonic()
 
             try:
                 item = self._queue.get(timeout=0.05)

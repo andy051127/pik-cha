@@ -42,7 +42,7 @@ class ImageManager:
         Returns:
             저장된 이미지 정보 딕셔너리
         """
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         filename = f"photo_{timestamp}.jpg"
         filepath = self.base_dir / filename
 

@@ -39,8 +39,17 @@ edsdk.EdsTerminateSDK.restype = c_int
 edsdk.EdsRelease.restype = c_int
 edsdk.EdsRelease.argtypes = [c_void_p]
 
+edsdk.EdsSendCommand.restype = c_int
+edsdk.EdsSendCommand.argtypes = [c_void_p, c_uint32, c_int]
+CMD_EXTEND_SHUTDOWN_TIMER = 0x00000001
+
 # EdsError: 0 = EDS_ERR_OK
 EDS_ERR_OK = 0
+
+
+def extend_shutdown_timer(camera) -> int:
+    """워커 스레드에서 카메라 자동 종료 타이머를 연장한다."""
+    return edsdk.EdsSendCommand(camera, CMD_EXTEND_SHUTDOWN_TIMER, 0)
 
 
 def init_sdk() -> int:

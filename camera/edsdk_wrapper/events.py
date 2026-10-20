@@ -7,6 +7,7 @@ EDSDK 이벤트 콜백(ObjectEvent, StateEvent) 등록 모듈.
 """
 
 import ctypes
+import time
 from ctypes import c_int, c_uint32, c_void_p
 
 from .sdk import edsdk
@@ -30,7 +31,7 @@ edsdk.EdsSetCameraStateEventHandler.argtypes = [c_void_p, c_uint32, c_void_p, c_
 
 # 촬영 완료를 알리는 플래그. capture 시퀀스에서 이 값을 폴링/대기.
 # 다운로드된 최신 파일 경로도 같이 기록해둔다.
-capture_done_flag = {"done": False, "last_saved_path": None, "last_error": None}
+capture_done_flag = {"done": False, "done_at": None, "last_saved_path": None, "last_error": None}
 
 
 def _object_event_callback(event, obj, context):
@@ -44,6 +45,7 @@ def _object_event_callback(event, obj, context):
             saved_path = download_image(obj)
             if saved_path:
                 capture_done_flag["last_saved_path"] = saved_path
+                capture_done_flag["done_at"] = time.monotonic()
                 capture_done_flag["done"] = True
         except Exception as e:
             print(f"[EVENT] 이미지 처리 실패: {e}")

@@ -4,3 +4,6 @@ AGENTS.md
 .agent/
 #테스트 파일
 test/
+camera/captured_photos/
+camera/images/
+logs/
