@@ -3,8 +3,8 @@
 // ★ 이번 업데이트: 팀원이 준 실제 아이콘/색상 파일들을 반영.
 //   - Logo 3종 (기존 2종 -> 3종으로 늘어남)
 //   - Photo Color 2종 (컬러/흑백) - 실제 아이콘 이미지 사용
-//   - Special Frame 6종 (mint_black_star 삭제, halloween/hello 추가) -
-//     실제 패턴 이미지를 border 영역에 그대로 그림. halloween/hello는
+//   - Special Frame 5종 (mint_black_star 삭제, halloween 추가) -
+//     실제 패턴 이미지를 border 영역에 그대로 그림. halloween은
 //     완성본이 PNG가 아니라 SVG(패턴 fill + 구멍 4개짜리 path)로 왔는데,
 //     다른 항목들과 똑같이 <img src="....svg">로 로드해서 Canvas에
 //     drawImage하면 되므로 로직 변경 없이 그대로 섞어 쓸 수 있다.
@@ -52,7 +52,6 @@ const ASSET_SPECIAL_FRAMES = [
   { id: "mint_white_star", src: "assets/special_frames/mint_white_star.png" },
   { id: "black_white_star", src: "assets/special_frames/black_white_star.png" },
   { id: "halloween", src: "assets/special_frames/halloween.svg" },
-  { id: "hello", src: "assets/special_frames/hello.svg" },
 ];
 
 // color: 실제 파일에서 추출한 평균 색상값. green은 로고가 중앙에 박혀있는
@@ -108,10 +107,6 @@ const REAL_FULL_OVERLAY = {
   "white_logo1_halloween": "assets/frames_full/halloween_logo1.svg",
   "white_logo2_halloween": "assets/frames_full/halloween_logo2.svg",
   "white_logo3_halloween": "assets/frames_full/halloween_logo3.svg",
-
-  "white_logo1_hello": "assets/frames_full/hello_logo1.svg",
-  "white_logo2_hello": "assets/frames_full/hello_logo2.svg",
-  "white_logo3_hello": "assets/frames_full/hello_logo3.svg",
 };
 
 // ★ 특별프레임을 선택했을 때, 실제 완성본이 위 REAL_FULL_OVERLAY 키에서
@@ -156,7 +151,7 @@ function loadSelectionFromSession() {
 }
 
 // ── 실제 아이콘 이미지로 스와치 렌더링 ─────────────────────────────
-const specialIds = ["navy_star", "marble", "mint_white_star", "black_white_star", "hello", "halloween"];
+const specialIds = ["navy_star", "marble", "mint_white_star", "black_white_star", "halloween"];
 function renderSwatches() {
     document.querySelectorAll(".sw[data-group][data-value]").forEach((swatch) => {
         const { group, value } = swatch.dataset;
@@ -237,12 +232,73 @@ function drawImageCover(img, x, y, w, h) {
 }
 
 // ── Canvas 실시간 미리보기 합성 ───────────────────────────────────
+// ★ halloween 완성본(SVG)은 PNG와 달리 사진 칸이 투명하게 뚫려 있지 않고
+//   불투명한 #F5F5F5 사각형으로 채워져 있다. 그래서 사진을 먼저 그리고 오버레이를
+//   덮으면 사진이 통째로 가려진다 -> 이 경우엔 오버레이를 먼저 그리고 그 위에 사진을 그린다.
+//   칸 좌표도 PNG(y=242/882)와 달라서(y=283/923) 별도 슬롯을 쓴다.
+const SVG_PHOTO_SLOTS = [
+  { xf: 80 / CANVAS_W, yf: 283 / CANVAS_H, wf: 450 / CANVAS_W, hf: 620 / CANVAS_H },
+  { xf: 570 / CANVAS_W, yf: 283 / CANVAS_H, wf: 450 / CANVAS_W, hf: 620 / CANVAS_H },
+  { xf: 80 / CANVAS_W, yf: 923 / CANVAS_H, wf: 450 / CANVAS_W, hf: 620 / CANVAS_H },
+  { xf: 570 / CANVAS_W, yf: 923 / CANVAS_H, wf: 450 / CANVAS_W, hf: 620 / CANVAS_H },
+];
+
+function hasOpaquePhotoWindows(overlaySrc) {
+  return /\.svg$/i.test(overlaySrc || "");
+}
+
+// 연속 클릭 시 느린 SVG 로딩이 끝난 이전 렌더가 최신 렌더 위에 덧그려지지 않도록 하는 번호표
+let renderSeq = 0;
+
 async function renderPreview() {
+  const seq = ++renderSeq;
   ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
-  // 1) 사진 4장 먼저 그림 (2x2 격자)
-  for (let i = 0; i < PHOTO_SLOTS.length; i++) {
-    const slotF = PHOTO_SLOTS[i];
+  // 프레임 오버레이 결정
+  //    - 신구대(green)는 로고 선택과 무관하게 항상 자기 완성본을 그대로 씀
+  //    - 그 외는 (프레임색 또는 특별프레임)+로고 조합으로 완성본을 찾음
+  let overlaySrc = null;
+
+  if (state.frameColorId === "green" && !state.specialFrameId) {
+    overlaySrc = "assets/frames_full/green_standalone.png";
+  } else {
+    overlaySrc = REAL_FULL_OVERLAY[currentOverlayKey()] || null;
+  }
+
+  let overlayImg = null;
+  if (overlaySrc) {
+    try {
+      overlayImg = await loadImage(overlaySrc);
+    } catch (err) {
+      console.warn("완성본 오버레이 로드 실패, 레이어 합성으로 대체:", err);
+    }
+  }
+  if (seq !== renderSeq) return;
+
+  // 사진 칸이 막혀 있는 완성본(SVG): 오버레이 먼저, 사진은 그 위에
+  if (overlayImg && hasOpaquePhotoWindows(overlaySrc)) {
+    ctx.drawImage(overlayImg, 0, 0, CANVAS_W, CANVAS_H);
+    await drawPhotos(SVG_PHOTO_SLOTS, seq);
+    return;
+  }
+
+  await drawPhotos(PHOTO_SLOTS, seq);
+  if (seq !== renderSeq) return;
+
+  if (overlayImg) {
+    ctx.drawImage(overlayImg, 0, 0, CANVAS_W, CANVAS_H);
+    return;
+  }
+
+  // 완성본이 없는 조합은 실제 에셋으로 레이어 합성 (배경/패턴 + 로고)
+  await drawComposedOverlay();
+}
+
+// 사진 4장을 주어진 슬롯(2x2 격자)에 그림
+async function drawPhotos(slots, seq) {
+  for (let i = 0; i < slots.length; i++) {
+    if (seq !== renderSeq) return;
+    const slotF = slots[i];
     const slot = {
       x: slotF.xf * CANVAS_W,
       y: slotF.yf * CANVAS_H,
@@ -258,6 +314,7 @@ async function renderPreview() {
       const src = photo.mockSrc || `${API_BASE}/api/images/${photo.id}`;
       try {
         const img = await loadImage(src);
+        if (seq !== renderSeq) return;
         ctx.save();
         ctx.beginPath();
         ctx.rect(slot.x, slot.y, slot.w, slot.h);
@@ -275,30 +332,6 @@ async function renderPreview() {
       }
     }
   }
-
-  // 2) 프레임 오버레이 결정
-  //    - 신구대(green)는 로고 선택과 무관하게 항상 자기 완성본을 그대로 씀
-  //    - 그 외는 (프레임색 또는 특별프레임)+로고 조합으로 완성본을 찾음
-  let overlaySrc = null;
-
-  if (state.frameColorId === "green" && !state.specialFrameId) {
-    overlaySrc = "assets/frames_full/green_standalone.png";
-  } else {
-    overlaySrc = REAL_FULL_OVERLAY[currentOverlayKey()] || null;
-  }
-
-  if (overlaySrc) {
-    try {
-      const overlayImg = await loadImage(overlaySrc);
-      ctx.drawImage(overlayImg, 0, 0, CANVAS_W, CANVAS_H);
-      return;
-    } catch (err) {
-      console.warn("완성본 오버레이 로드 실패, 레이어 합성으로 대체:", err);
-    }
-  }
-
-  // 3) 완성본이 없는 조합은 실제 에셋으로 레이어 합성 (배경/패턴 + 로고)
-  await drawComposedOverlay();
 }
 
 // border(테두리)/band(밴드)/divider(구분선) 영역들의 좌표를 계산

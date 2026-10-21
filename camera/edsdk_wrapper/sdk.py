@@ -160,7 +160,7 @@ edsdk.EdsSetCapacity.argtypes = [c_void_p, EdsCapacity]
 
 def set_capacity(camera) -> int:
     """
-    SaveTo=Host로 전환하기 전, 카메라에게 'PC에 이만큼 여유공간 있다'고
+    SaveTo=Host로 전환한 직후, 카메라에게 'PC에 이만큼 여유공간 있다'고
     알려주는 절차. EDSDK 공식 샘플에서 SaveTo=Host 설정 시 필수로 같이
     호출하는 함수라, 이게 없으면 SaveTo 설정이 무시되는 경우가 있다.
     """

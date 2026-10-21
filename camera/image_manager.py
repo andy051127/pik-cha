@@ -3,11 +3,24 @@
 """
 
 import os
+import io
 import json
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict
+
+from PIL import Image, ImageOps
+
+
+def _mirror_jpeg(image_bytes: bytes) -> bytes:
+    """JPEG 바이트를 좌우반전. EXIF 회전을 먼저 적용해 세로 사진도 올바른 축으로 뒤집는다."""
+    with Image.open(io.BytesIO(image_bytes)) as img:
+        img = ImageOps.exif_transpose(img)
+        mirrored = ImageOps.mirror(img.convert("RGB"))
+    out = io.BytesIO()
+    mirrored.save(out, format="JPEG", quality=95)
+    return out.getvalue()
 
 
 class ImageManager:
@@ -45,6 +58,10 @@ class ImageManager:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         filename = f"photo_{timestamp}.jpg"
         filepath = self.base_dir / filename
+
+        # ★ 라이브뷰가 프론트에서 좌우반전(거울)되어 보이므로, 촬영본도 똑같이 반전해서
+        #   리뷰/프레임 합성/인화/S3 결과가 사용자가 화면에서 본 모습과 일치하게 한다.
+        image_bytes = _mirror_jpeg(image_bytes)
 
         # 이미지 저장
         with open(filepath, "wb") as f:

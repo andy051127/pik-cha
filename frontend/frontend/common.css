@@ -216,6 +216,15 @@ a:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
 .cta-light { background: var(--white); color: var(--ink); }
 .cta-light:hover { background: #efebe4; }
 
+/* 이전 화면으로 돌아가는 보조 버튼 (02 순번 입력 / 03 수량 선택) — 확인 버튼 아래에 작게 */
+.cta-back {
+  margin-top: clamp(10px, 2dvh, 18px);
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+.cta-back:hover { background: #efebe4; }
+
 
 /* ── 7. 상태 클래스 (JS 에서 켜고 끈다) ────────────────────────────── */
 /* 비활성: 누를 수 없고 흐리게 (예: 수량이 끝에 닿은 −/+ 버튼) */

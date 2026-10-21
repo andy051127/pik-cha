@@ -1,3 +1,68 @@
 {
-  "images": []
+  "images": [
+    {
+      "id": "20261021_154822_298605",
+      "filename": "photo_20261021_154822_298605.jpg",
+      "filepath": "images\\photo_20261021_154822_298605.jpg",
+      "shot_number": 1,
+      "timestamp": "2026-10-21T15:48:22.623456",
+      "size": 2839352
+    },
+    {
+      "id": "20261021_154828_680184",
+      "filename": "photo_20261021_154828_680184.jpg",
+      "filepath": "images\\photo_20261021_154828_680184.jpg",
+      "shot_number": 2,
+      "timestamp": "2026-10-21T15:48:28.988169",
+      "size": 2802752
+    },
+    {
+      "id": "20261021_154835_043199",
+      "filename": "photo_20261021_154835_043199.jpg",
+      "filepath": "images\\photo_20261021_154835_043199.jpg",
+      "shot_number": 3,
+      "timestamp": "2026-10-21T15:48:35.339841",
+      "size": 2746252
+    },
+    {
+      "id": "20261021_154841_385113",
+      "filename": "photo_20261021_154841_385113.jpg",
+      "filepath": "images\\photo_20261021_154841_385113.jpg",
+      "shot_number": 4,
+      "timestamp": "2026-10-21T15:48:41.685202",
+      "size": 2799631
+    },
+    {
+      "id": "20261021_154847_716651",
+      "filename": "photo_20261021_154847_716651.jpg",
+      "filepath": "images\\photo_20261021_154847_716651.jpg",
+      "shot_number": 5,
+      "timestamp": "2026-10-21T15:48:48.022852",
+      "size": 2797494
+    },
+    {
+      "id": "20261021_154854_084176",
+      "filename": "photo_20261021_154854_084176.jpg",
+      "filepath": "images\\photo_20261021_154854_084176.jpg",
+      "shot_number": 6,
+      "timestamp": "2026-10-21T15:48:54.436331",
+      "size": 2759495
+    },
+    {
+      "id": "20261021_154900_537142",
+      "filename": "photo_20261021_154900_537142.jpg",
+      "filepath": "images\\photo_20261021_154900_537142.jpg",
+      "shot_number": 7,
+      "timestamp": "2026-10-21T15:49:00.859891",
+      "size": 2811026
+    },
+    {
+      "id": "20261021_154906_918329",
+      "filename": "photo_20261021_154906_918329.jpg",
+      "filepath": "images\\photo_20261021_154906_918329.jpg",
+      "shot_number": 8,
+      "timestamp": "2026-10-21T15:49:07.213932",
+      "size": 2801971
+    }
+  ]
 }

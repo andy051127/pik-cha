@@ -27,6 +27,7 @@ import io
 import socket
 import base64
 import uuid
+import time
 import requests
 from datetime import datetime, timezone
 
@@ -39,8 +40,10 @@ except ImportError:
     pass
 
 API_GATEWAY_URL = os.environ.get("API_GATEWAY_URL", "").rstrip("/")
+UPLOAD_CUTS = os.environ.get("UPLOAD_CUTS", "1") != "0"
 LOCAL_TEST_PORT = int(os.environ.get("LOCAL_TEST_PORT", 8000))
 REQUEST_TIMEOUT = 10  # 초
+UPLOAD_TIMEOUT = (10, 60)  # 약 4MB PUT은 업로드 대역폭이 느릴 때 API 호출보다 오래 걸림
 
 
 def make_session_id() -> str:
@@ -117,20 +120,35 @@ def _request_download_url(key: str) -> str | None:
         return None
 
 
-def _put_file(upload_url: str, local_path: str, content_type: str = "image/jpeg") -> bool:
+def _put_file(upload_url: str, local_path: str, content_type: str = "image/jpeg", label: str | None = None) -> bool:
     """presigned PUT URL로 순수 HTTP 업로드 (AWS 자격증명 불필요)."""
+    file_label = f"{label} ({local_path})" if label else local_path
     try:
         with open(local_path, "rb") as f:
             data = f.read()
-        resp = requests.put(
-            upload_url, data=data, headers={"Content-Type": content_type}, timeout=REQUEST_TIMEOUT
-        )
-        resp.raise_for_status()
-        print(f"✅ [S3] 업로드 완료: {local_path}")
-        return True
-    except (requests.RequestException, OSError) as e:
-        print(f"⚠️  [S3] 업로드 실패: {e}")
+    except OSError as e:
+        print(f"⚠️  [S3] 업로드 실패: {file_label} - {e}")
         return False
+
+    for attempt in range(1, 4):
+        try:
+            resp = requests.put(
+                upload_url, data=data, headers={"Content-Type": content_type}, timeout=UPLOAD_TIMEOUT
+            )
+            resp.raise_for_status()
+            print(f"✅ [S3] 업로드 완료: {file_label}")
+            return True
+        except requests.RequestException as e:
+            retryable = isinstance(e, (requests.ConnectionError, requests.Timeout)) or (
+                isinstance(e, requests.HTTPError)
+                and e.response is not None
+                and 500 <= e.response.status_code < 600
+            )
+            if not retryable or attempt == 3:
+                print(f"⚠️  [S3] 업로드 실패: {file_label} - {e}")
+                return False
+            print(f"⚠️  [S3] 업로드 재시도 ({attempt + 1}/3): {file_label} - {e}")
+            time.sleep(attempt)
 
 
 def create_local_test_qr() -> dict:
@@ -209,7 +227,7 @@ def upload_fourcut_session(
     ticket_number: int | None = None,
 ) -> dict | None:
     """
-    한 세션의 개별 컷 4장 + 합성본 1장을 presigned URL로 S3에 업로드하고,
+    한 세션의 합성본과 선택적으로 개별 컷 4장을 presigned URL로 S3에 업로드하고,
     다운로드용 QR도 만든다 (전부 Access Key 없이, API Gateway 경유).
 
     ★ API_GATEWAY_URL이 설정 안 되어 있으면 '로컬 테스트 모드'로 빠진다.
@@ -230,14 +248,14 @@ def upload_fourcut_session(
         "qr_base64": "...",
     }
 
-    업로드 자체가 실패하면 None. QR 발급만 실패하면 그 부분만 빠지고 나머지는 반환.
+    합성본 업로드가 실패하면 None. QR 발급만 실패하면 그 부분만 빠지고 나머지는 반환.
     """
     if not API_GATEWAY_URL:
         return create_local_test_qr()
 
     session_id = make_session_id()
-    cut_filenames = [f"cut_{i}.jpg" for i in range(1, len(cut_paths) + 1)]
-    all_filenames = cut_filenames + ["fourcut.jpg"]
+    cut_filenames = [f"cut_{i}.jpg" for i in range(1, len(cut_paths) + 1)] if UPLOAD_CUTS else []
+    all_filenames = ["fourcut.jpg"] + cut_filenames
 
     presign_result = _request_upload_urls(session_id, all_filenames, name, phone_number, print_quantity, ticket_number)
     if not presign_result or "files" not in presign_result:
@@ -246,23 +264,24 @@ def upload_fourcut_session(
 
     files_info = presign_result["files"]
 
-    cut_keys = []
-    for path, filename in zip(cut_paths, cut_filenames):
-        info = files_info.get(filename)
-        if not info:
-            print(f"⚠️  {filename}의 presigned URL이 응답에 없음")
-            return None
-        if not _put_file(info["upload_url"], path):
-            return None
-        cut_keys.append(info["key"])
-
     fourcut_info = files_info.get("fourcut.jpg")
     if not fourcut_info:
         print("⚠️  fourcut.jpg의 presigned URL이 응답에 없음")
         return None
-    if not _put_file(fourcut_info["upload_url"], fourcut_path):
+    if not _put_file(fourcut_info["upload_url"], fourcut_path, label="fourcut.jpg"):
         return None
     fourcut_key = fourcut_info["key"]
+
+    cut_keys = []
+    for path, filename in zip(cut_paths, cut_filenames):
+        info = files_info.get(filename)
+        if not info:
+            print(f"⚠️  [S3] {filename}의 presigned URL이 응답에 없음 - 컷 업로드 건너뜀")
+            continue
+        if not _put_file(info["upload_url"], path, label=filename):
+            print(f"⚠️  [S3] {filename} 업로드 실패 - 합성본 처리 계속")
+            continue
+        cut_keys.append(info["key"])
 
     result = {
         "session_id": session_id,

@@ -114,9 +114,10 @@ class EdsdkWorker:
             # ★ SaveTo=Host로 전환 - 안 하면 카메라가 SD카드에만 저장하고
             #   DirItemCreated/RequestTransfer 대신 VolumeInfoChanged(0x201)만 쏴서
             #   events.py의 다운로드 콜백이 영영 안 걸림 (실카메라 테스트로 확인된 문제).
-            #   set_capacity가 SaveTo=Host보다 먼저 와야 함 (sdk.py 주석 참고).
-            sdk.set_capacity(camera)
+            #   Canon 공식 샘플 순서대로 SaveTo=Host 먼저, 그다음 set_capacity.
+            #   (반대 순서일 때 촬영이 0x8D07 CARD_NG로 거부되는 문제 확인 중)
             sdk.set_save_to_host(camera)
+            sdk.set_capacity(camera)
             sdk.log_image_quality(camera)
             events.register_event_handlers(camera)
 

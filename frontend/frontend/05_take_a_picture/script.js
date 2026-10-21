@@ -4,7 +4,7 @@ const WS_URL = "ws://localhost:8000/ws/liveview";
 const preview = document.getElementById("camera-preview");
 const cameraEl = document.createElement("img");
 cameraEl.alt = "카메라 미리보기";
-cameraEl.style.cssText = "width:100%;height:100%;object-fit:cover;display:block";
+cameraEl.style.cssText = "width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)"; // 거울처럼 좌우반전 (촬영본도 백엔드에서 동일하게 반전)
 preview.appendChild(cameraEl);
 const shotCountEl = document.getElementById("shot-count");
 const timeLeftEl = document.getElementById("time-left");
