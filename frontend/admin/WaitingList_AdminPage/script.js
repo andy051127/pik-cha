@@ -163,6 +163,7 @@ function renderWaitlist(items) {
 
   waitlistBody.innerHTML = items.map((item) => {
     const cancelable = item.status === "waiting" || item.status === "called";
+    const canResendSms = cancelable && !!item.phone_number;
     return `
       <tr>
         <td>${item.ticket_number}</td>
@@ -171,17 +172,44 @@ function renderWaitlist(items) {
         <td>${item.party_size ?? "-"}</td>
         <td>${escapeHtml(item.phone_number || "")}</td>
         <td><span class="pill-s status-${item.status}">${STATUS_LABEL[item.status] || escapeHtml(item.status)}</span></td>
-        <td>${formatTime(item.created_at)}</td>
+        <td title="${formatTime(item.created_at)}">${formatTime(item.created_at, false)}</td>
         <td>
-          <button type="button" class="row-btn cancel-btn" data-ticket="${item.ticket_number}" ${cancelable ? "" : "disabled"}>취소</button>
+          <div class="row-actions">
+            <button type="button" class="row-btn resend-btn" data-ticket="${item.ticket_number}" ${canResendSms ? "" : "disabled"}>SMS재발송</button>
+            <button type="button" class="row-btn cancel-btn" data-ticket="${item.ticket_number}" ${cancelable ? "" : "disabled"}>취소</button>
+          </div>
         </td>
       </tr>
     `;
   }).join("");
 
+  waitlistBody.querySelectorAll(".resend-btn:not(:disabled)").forEach((btn) => {
+    btn.addEventListener("click", () => resendWaitlistSms(btn.dataset.ticket));
+  });
   waitlistBody.querySelectorAll(".cancel-btn:not(:disabled)").forEach((btn) => {
     btn.addEventListener("click", () => cancelTicket(btn.dataset.ticket));
   });
+}
+
+// 입장 안내 문자 재발송 (관리자 전용, Basic Auth)
+async function resendWaitlistSms(ticketNumber) {
+  if (!window.confirm(`${ticketNumber}번에게 입장 안내 문자를 다시 보낼까요?`)) return;
+
+  try {
+    const res = await authedFetch("/admin/waitlist/sms/resend", {
+      method: "POST",
+      body: JSON.stringify({ ticket_number: parseInt(ticketNumber, 10) }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setMessage(data.error || "SMS 재발송에 실패했습니다.");
+      return;
+    }
+    setMessage(`${ticketNumber}번에게 SMS를 재발송했습니다.`);
+  } catch (err) {
+    console.error(err);
+    setMessage(err.message);
+  }
 }
 
 // 취소 (공개 엔드포인트, Basic Auth 불필요)
@@ -199,7 +227,7 @@ async function cancelTicket(ticketNumber) {
       setMessage(data.error || "취소에 실패했습니다.");
       return;
     }
-    setMessage("");
+    setMessage(data.next_called ? `${ticketNumber}번을 취소하고 ${data.next_called}번에게 호출 문자를 보냈습니다.` : "");
     loadWaitlist();
     pollWaitingCount();
   } catch (err) {

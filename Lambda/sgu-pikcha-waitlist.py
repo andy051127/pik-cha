@@ -202,19 +202,32 @@ def _handle_start_session(event):
     if status in ("completed", "canceled"):
         return _response(400, {"error": f"이미 종료된 순번입니다 (status={status})"})
 
-    table.update_item(
-        Key={"ticket_number": ticket_number},
-        UpdateExpression="SET #s = :in_session, session_started_at = :now",
-        ExpressionAttributeNames={"#s": "status"},
-        ExpressionAttributeValues={
-            ":in_session": "in_session",
-            ":now": datetime.now(timezone.utc).isoformat(),
-        },
-    )
+    # ★ waiting/called → in_session 전환은 조건부로 딱 한 번만 성공시킨다. 이미 촬영을
+    #   시작한 번호(뒤로가기 후 재입력, 타임아웃 재시도, 동시 요청)는 정보만 돌려주고
+    #   다음 팀 호출은 건너뜀 - 같은 팀이 여러 번 들어와서 대기팀이 2팀씩 불리던 문제 방지
+    first_entry = True
+    try:
+        table.update_item(
+            Key={"ticket_number": ticket_number},
+            UpdateExpression="SET #s = :in_session, session_started_at = :now",
+            ConditionExpression="#s = :waiting OR #s = :called",
+            ExpressionAttributeNames={"#s": "status"},
+            ExpressionAttributeValues={
+                ":in_session": "in_session",
+                ":waiting": "waiting",
+                ":called": "called",
+                ":now": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+    except table.meta.client.exceptions.ConditionalCheckFailedException:
+        first_entry = False
 
     # ★ 다음 팀 호출 시점을 "촬영 완료"가 아니라 "촬영 시작"으로 당김 - 이 팀이
     #   촬영~합성~인쇄까지 진행하는 동안 다음 팀이 미리 부스로 이동할 시간을 벌어줌
-    _call_next_and_notify()
+    if first_entry:
+        _call_next_and_notify()
+    else:
+        print(f"↩️  이미 촬영 시작된 순번 재입력 - 다음 팀 호출 생략: ticket_number={ticket_number}")
 
     print(f"✅ 촬영 시작: ticket_number={ticket_number}")
     return _response(200, {
@@ -241,10 +254,31 @@ def _find_next_waiting_ticket() -> int | None:
     return min(int(i["ticket_number"]) for i in items)
 
 
+def _find_called_ticket() -> int | None:
+    """호출만 되고 아직 촬영을 시작 안 한(status=called) 티켓 중 가장 작은 번호."""
+    resp = table.scan(
+        FilterExpression="#s = :called AND ticket_number > :zero",
+        ExpressionAttributeNames={"#s": "status"},
+        ExpressionAttributeValues={":called": "called", ":zero": COUNTER_KEY},
+        ProjectionExpression="ticket_number",
+    )
+    items = resp.get("Items", [])
+    if not items:
+        return None
+    return min(int(i["ticket_number"]) for i in items)
+
+
 def _call_next_and_notify() -> int | None:
     """남은 팀 중 가장 빠른 waiting 티켓을 찾아 called로 바꾸고 now_serving을 갱신 +
     그 팀에게 SMS 발송. (진입 순서를 강제하진 않음 - now_serving은 표시/안내용일 뿐)
-    호출된 티켓 번호(없으면 None)를 반환."""
+    호출된 티켓 번호(없으면 None)를 반환.
+    ★ 이미 호출(called)돼서 부스로 오는 중인 팀이 있으면 추가로 부르지 않는다 - 그 팀이
+      안 오면 관리자 화면에서 SMS 재발송 또는 취소(→ 다음 팀 자동 호출)로 넘기면 됨."""
+    called_ticket = _find_called_ticket()
+    if called_ticket is not None:
+        print(f"⏸️  이미 호출된 팀이 있어 추가 호출 생략: called={called_ticket}")
+        return None
+
     next_ticket = _find_next_waiting_ticket()
 
     if next_ticket is None:
@@ -364,8 +398,17 @@ def _handle_cancel(event):
         ExpressionAttributeValues={":canceled": "canceled", ":now": datetime.now(timezone.utc).isoformat()},
     )
 
-    print(f"🛑 웨이팅 취소: ticket_number={ticket_number}")
-    return _response(200, {"ticket_number": ticket_number, "status": "canceled"})
+    # ★ 호출(called)받은 팀이 취소하면 그 자리가 비므로 다음 waiting 팀을 바로 호출 + SMS.
+    #   아직 waiting이던 팀의 취소는 호출 순서에 영향이 없어서 아무에게도 안 보낸다.
+    next_called = None
+    if status == "called":
+        try:
+            next_called = _call_next_and_notify()
+        except Exception as e:
+            print(f"⚠️  [cancel] 다음 팀 호출 실패: {e}")
+
+    print(f"🛑 웨이팅 취소: ticket_number={ticket_number}, next_called={next_called}")
+    return _response(200, {"ticket_number": ticket_number, "status": "canceled", "next_called": next_called})
 
 
 def _handle_now_serving():
