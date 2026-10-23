@@ -3,11 +3,8 @@
 // ★ 이번 업데이트: 팀원이 준 실제 아이콘/색상 파일들을 반영.
 //   - Logo 3종 (기존 2종 -> 3종으로 늘어남)
 //   - Photo Color 2종 (컬러/흑백) - 실제 아이콘 이미지 사용
-//   - Special Frame 5종 (mint_black_star 삭제, halloween 추가) -
-//     실제 패턴 이미지를 border 영역에 그대로 그림. halloween은
-//     완성본이 PNG가 아니라 SVG(패턴 fill + 구멍 4개짜리 path)로 왔는데,
-//     다른 항목들과 똑같이 <img src="....svg">로 로드해서 Canvas에
-//     drawImage하면 되므로 로직 변경 없이 그대로 섞어 쓸 수 있다.
+//   - Special Frame 4종 (mint_black_star 삭제) -
+//     실제 패턴 이미지를 border 영역에 그대로 그림.
 //   - Frame 색상 5종 - 실제 파일에서 뽑아낸 정확한 색상값 사용,
 //     그중 green(신구대)은 로고가 이미 박혀있는 특수 케이스라 별도 처리
 //
@@ -51,7 +48,6 @@ const ASSET_SPECIAL_FRAMES = [
   { id: "marble", src: "assets/special_frames/marble.png" },
   { id: "mint_white_star", src: "assets/special_frames/mint_white_star.png" },
   { id: "black_white_star", src: "assets/special_frames/black_white_star.png" },
-  { id: "halloween", src: "assets/special_frames/halloween.svg" },
 ];
 
 // color: 실제 파일에서 추출한 평균 색상값. green은 로고가 중앙에 박혀있는
@@ -103,10 +99,6 @@ const REAL_FULL_OVERLAY = {
   "white_logo1_black_white_star": "assets/frames_full/black_white_star_logo1.png",
   "white_logo2_black_white_star": "assets/frames_full/black_white_star_logo2.png",
   "white_logo3_black_white_star": "assets/frames_full/black_white_star_logo3.png",
-
-  "white_logo1_halloween": "assets/frames_full/halloween_logo1.svg",
-  "white_logo2_halloween": "assets/frames_full/halloween_logo2.svg",
-  "white_logo3_halloween": "assets/frames_full/halloween_logo3.svg",
 };
 
 // ★ 특별프레임을 선택했을 때, 실제 완성본이 위 REAL_FULL_OVERLAY 키에서
@@ -151,7 +143,7 @@ function loadSelectionFromSession() {
 }
 
 // ── 실제 아이콘 이미지로 스와치 렌더링 ─────────────────────────────
-const specialIds = ["navy_star", "marble", "mint_white_star", "black_white_star", "halloween"];
+const specialIds = ["navy_star", "marble", "mint_white_star", "black_white_star"];
 function renderSwatches() {
     document.querySelectorAll(".sw[data-group][data-value]").forEach((swatch) => {
         const { group, value } = swatch.dataset;
@@ -175,7 +167,9 @@ document.querySelectorAll(".sw[data-group][data-value]").forEach((swatch) => {
             state.logoId = value.replace("logo-", "logo");
             if (state.frameColorId === "green") state.frameColorId = "white";
         } else if (group === "color") {
-            state.photoColorId = value === "rainbow" ? "color" : "bw";
+            const id = value === "rainbow" ? "color" : "bw";
+            // 이미 선택된 흑백을 다시 누르면 선택 해제(기본값 컬러로 복귀)
+            state.photoColorId = id === state.photoColorId ? "color" : id;
         } else if (group === "special") {
             const id = specialIds[Number(value.slice(-1)) - 1];
             state.specialFrameId = state.specialFrameId === id ? null : id;
@@ -232,22 +226,7 @@ function drawImageCover(img, x, y, w, h) {
 }
 
 // ── Canvas 실시간 미리보기 합성 ───────────────────────────────────
-// ★ halloween 완성본(SVG)은 PNG와 달리 사진 칸이 투명하게 뚫려 있지 않고
-//   불투명한 #F5F5F5 사각형으로 채워져 있다. 그래서 사진을 먼저 그리고 오버레이를
-//   덮으면 사진이 통째로 가려진다 -> 이 경우엔 오버레이를 먼저 그리고 그 위에 사진을 그린다.
-//   칸 좌표도 PNG(y=242/882)와 달라서(y=283/923) 별도 슬롯을 쓴다.
-const SVG_PHOTO_SLOTS = [
-  { xf: 80 / CANVAS_W, yf: 283 / CANVAS_H, wf: 450 / CANVAS_W, hf: 620 / CANVAS_H },
-  { xf: 570 / CANVAS_W, yf: 283 / CANVAS_H, wf: 450 / CANVAS_W, hf: 620 / CANVAS_H },
-  { xf: 80 / CANVAS_W, yf: 923 / CANVAS_H, wf: 450 / CANVAS_W, hf: 620 / CANVAS_H },
-  { xf: 570 / CANVAS_W, yf: 923 / CANVAS_H, wf: 450 / CANVAS_W, hf: 620 / CANVAS_H },
-];
-
-function hasOpaquePhotoWindows(overlaySrc) {
-  return /\.svg$/i.test(overlaySrc || "");
-}
-
-// 연속 클릭 시 느린 SVG 로딩이 끝난 이전 렌더가 최신 렌더 위에 덧그려지지 않도록 하는 번호표
+// 연속 클릭 시 느린 이미지 로딩이 끝난 이전 렌더가 최신 렌더 위에 덧그려지지 않도록 하는 번호표
 let renderSeq = 0;
 
 async function renderPreview() {
@@ -274,13 +253,6 @@ async function renderPreview() {
     }
   }
   if (seq !== renderSeq) return;
-
-  // 사진 칸이 막혀 있는 완성본(SVG): 오버레이 먼저, 사진은 그 위에
-  if (overlayImg && hasOpaquePhotoWindows(overlaySrc)) {
-    ctx.drawImage(overlayImg, 0, 0, CANVAS_W, CANVAS_H);
-    await drawPhotos(SVG_PHOTO_SLOTS, seq);
-    return;
-  }
 
   await drawPhotos(PHOTO_SLOTS, seq);
   if (seq !== renderSeq) return;

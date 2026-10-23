@@ -37,6 +37,16 @@ thumbs.forEach((thumb, index) => {
     });
 });
 
+// 보드에 채워진 사진을 누르면 그 사진 선택을 해제한다 (뒤 순서 사진은 앞으로 당겨짐)
+slots.forEach((slot, index) => {
+    slot.style.cursor = "pointer";
+    slot.addEventListener("click", () => {
+        if (index >= selection.length) return;
+        selection.splice(index, 1);
+        render();
+    });
+});
+
 nextBtn.addEventListener("click", (event) => {
     event.preventDefault();
     if (selection.length !== MAX_SELECT) return;
